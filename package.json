@@ -4,7 +4,7 @@
   "description": "AI漂流瓶 - 动态版",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node server.js",
     "build": "prisma migrate deploy && next build"
   },
   "dependencies": {
