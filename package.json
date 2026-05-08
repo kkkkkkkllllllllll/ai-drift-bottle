@@ -5,6 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js"
+    "build": "prisma migrate deploy && next build"
   },
   "dependencies": {
     "bcryptjs": "^3.0.3",
