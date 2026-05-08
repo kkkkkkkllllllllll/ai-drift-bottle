@@ -1,0 +1,1534 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI漂流瓶</title>
+  <style>
+    :root {
+      --bg1: #eaf3ff;
+      --bg2: #f2ecff;
+      --bg3: #fffaf5;
+      --text: #2d3553;
+      --muted: #66708f;
+      --primary: #7a9dff;
+      --primary-2: #9b89f6;
+      --mint: #79d8c5;
+      --danger: #e36f8c;
+      --card-bg: rgba(255, 255, 255, 0.55);
+      --card-border: rgba(255, 255, 255, 0.6);
+      --shadow: 0 14px 36px rgba(106, 121, 179, 0.18);
+      --radius: 20px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Microsoft YaHei", "PingFang SC", system-ui, -apple-system, sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      background:
+        radial-gradient(circle at 10% 15%, #f4fbff, transparent 34%),
+        radial-gradient(circle at 90% 0%, #ffeef9, transparent 34%),
+        linear-gradient(135deg, var(--bg1), var(--bg2) 45%, var(--bg3));
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        radial-gradient(rgba(255, 255, 255, 0.55) 1px, transparent 1px),
+        radial-gradient(rgba(196, 231, 255, 0.35) 1px, transparent 1px);
+      background-size: 22px 22px, 28px 28px;
+      opacity: 0.7;
+      animation: wave 9s linear infinite;
+    }
+
+    @keyframes wave {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-6px); }
+      100% { transform: translateY(0); }
+    }
+
+    .app {
+      width: min(900px, 100%);
+      margin: 0 auto;
+      padding: 20px 14px 50px;
+      position: relative;
+      z-index: 1;
+    }
+
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(10px);
+      padding: 20px;
+      animation: fadeUp 0.35s ease;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    h1, h2, h3, p { margin: 0; }
+    h1 { font-size: 30px; margin-bottom: 8px; }
+    h2 { font-size: 24px; margin-bottom: 8px; }
+    p { line-height: 1.7; color: var(--muted); }
+
+    .space { height: 14px; }
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 14px 0;
+    }
+    .stat {
+      background: rgba(255, 255, 255, 0.74);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      border-radius: 14px;
+      padding: 10px 12px;
+    }
+    .stat b { font-size: 18px; color: #4b598b; }
+
+    .row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .btn {
+      border: none;
+      background: linear-gradient(120deg, var(--primary), var(--primary-2));
+      color: #fff;
+      border-radius: 999px;
+      padding: 11px 16px;
+      font-size: 15px;
+      cursor: pointer;
+      transition: transform 0.2s ease, opacity 0.2s ease;
+      box-shadow: 0 8px 18px rgba(115, 121, 208, 0.32);
+    }
+    .btn:hover { transform: translateY(-1px) scale(1.02); }
+    .btn:focus-visible { outline: 3px solid rgba(121, 156, 255, 0.45); outline-offset: 2px; }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn.ghost {
+      background: rgba(255, 255, 255, 0.75);
+      color: #4d5d90;
+      border: 1px solid rgba(170, 191, 255, 0.5);
+      box-shadow: none;
+    }
+    .btn.mint {
+      background: linear-gradient(120deg, #6fd9c2, #7ab8ff);
+    }
+
+    textarea, input {
+      width: 100%;
+      border: 1px solid rgba(162, 179, 226, 0.5);
+      border-radius: 14px;
+      padding: 12px;
+      font-size: 15px;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.9);
+    }
+    textarea { min-height: 130px; resize: vertical; line-height: 1.7; }
+
+    .label { margin-bottom: 6px; color: #52608f; font-weight: 600; }
+    .muted { color: var(--muted); font-size: 14px; }
+
+    .chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0 2px; }
+    .chip {
+      border: 1px solid rgba(162, 179, 226, 0.55);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.82);
+      padding: 6px 10px;
+      font-size: 13px;
+      cursor: pointer;
+      color: #556089;
+    }
+    .chip.active {
+      border-color: rgba(122, 157, 255, 0.9);
+      background: linear-gradient(120deg, #eef4ff, #efe9ff);
+      color: #445183;
+    }
+
+    .meter {
+      height: 10px;
+      background: rgba(173, 186, 230, 0.26);
+      border-radius: 99px;
+      overflow: hidden;
+      margin-top: 8px;
+    }
+    .meter span {
+      display: block;
+      height: 100%;
+      background: linear-gradient(90deg, #79d8c5, #7b9dff, #9d8df5);
+      width: 0;
+    }
+
+    .note {
+      margin-top: 10px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-size: 14px;
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px dashed rgba(165, 180, 225, 0.55);
+      color: #556089;
+    }
+    .note.error {
+      color: #ab3a5a;
+      border-color: rgba(227, 111, 140, 0.6);
+      background: rgba(255, 242, 246, 0.9);
+    }
+    .note.safe {
+      color: #2e7261;
+      border-color: rgba(121, 216, 197, 0.7);
+      background: rgba(240, 255, 250, 0.94);
+    }
+
+    .panel {
+      margin-top: 12px;
+      border: 1px solid rgba(162, 179, 226, 0.45);
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.78);
+      padding: 12px;
+    }
+
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 4px 10px;
+      background: rgba(122, 157, 255, 0.15);
+      color: #4a5a8f;
+      font-size: 12px;
+      margin-right: 6px;
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(50, 59, 102, 0.35);
+      display: none;
+      place-items: center;
+      z-index: 30;
+      padding: 12px;
+    }
+    .modal.open { display: grid; }
+    .modal-card {
+      width: min(660px, 100%);
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 18px;
+      padding: 16px;
+      box-shadow: 0 20px 40px rgba(68, 78, 131, 0.25);
+      border: 1px solid rgba(210, 219, 248, 0.9);
+    }
+
+    .option-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+
+    .option {
+      border: 1px solid rgba(162, 179, 226, 0.58);
+      background: #fff;
+      border-radius: 12px;
+      padding: 9px 10px;
+      cursor: pointer;
+      color: #4e5a8d;
+      text-align: left;
+    }
+
+    .word-pool, .word-answer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 10px;
+      min-height: 46px;
+      padding: 10px;
+      border-radius: 12px;
+      border: 1px dashed rgba(162, 179, 226, 0.7);
+      background: rgba(245, 248, 255, 0.65);
+    }
+
+    .word {
+      border: 1px solid rgba(151, 171, 223, 0.7);
+      border-radius: 999px;
+      padding: 6px 11px;
+      cursor: pointer;
+      background: #fff;
+      color: #4f5b8b;
+    }
+
+    .toast-wrap {
+      position: fixed;
+      right: 12px;
+      bottom: 12px;
+      display: grid;
+      gap: 8px;
+      z-index: 50;
+    }
+
+    .toast {
+      min-width: 220px;
+      max-width: 320px;
+      border-radius: 12px;
+      padding: 10px 12px;
+      color: #4f5b8b;
+      background: rgba(255, 255, 255, 0.95);
+      border: 1px solid rgba(175, 191, 238, 0.6);
+      box-shadow: 0 10px 24px rgba(85, 98, 155, 0.18);
+      animation: fadeUp 0.3s ease;
+    }
+    .toast.error {
+      color: #a73f5e;
+      border-color: rgba(225, 116, 146, 0.64);
+      background: rgba(255, 246, 249, 0.98);
+    }
+
+    .particles {
+      pointer-events: none;
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+    }
+    .dot {
+      position: absolute;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(123, 157, 255, 0.6);
+      animation: rise 900ms ease forwards;
+    }
+    @keyframes rise {
+      to {
+        transform: translateY(-40px) scale(0.4);
+        opacity: 0;
+      }
+    }
+
+    @media (max-width: 640px) {
+      h1 { font-size: 26px; }
+      .stats { grid-template-columns: 1fr; }
+      .option-grid { grid-template-columns: 1fr; }
+    }
+
+    /* ===== 新增 CSS：用户系统与登录页 ===== */
+    .user-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 12px;
+      padding: 10px 16px;
+      margin-bottom: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.8);
+    }
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--primary-2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 15px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+    .user-name {
+      font-weight: 600;
+      color: var(--text);
+      font-size: 15px;
+    }
+    .user-name .anon-tag {
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 400;
+      margin-left: 4px;
+    }
+    .btn-logout {
+      border: none;
+      background: rgba(227, 111, 140, 0.12);
+      color: var(--danger);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      transition: background 0.2s ease;
+    }
+    .btn-logout:hover {
+      background: rgba(227, 111, 140, 0.22);
+    }
+
+    .login-form {
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      margin-bottom: 6px;
+      color: #52608f;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .form-group input {
+      margin-bottom: 0;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 10px;
+      border-bottom: 2px solid rgba(162, 179, 226, 0.3);
+      margin-bottom: 20px;
+    }
+    .tab {
+      padding: 8px 16px;
+      cursor: pointer;
+      border-radius: 8px 8px 0 0;
+      font-size: 14px;
+      color: #66708f;
+      background: transparent;
+      border: none;
+      transition: all 0.2s ease;
+    }
+    .tab:hover {
+      color: #4a5a8f;
+      background: rgba(255, 255, 255, 0.5);
+    }
+    .tab.active {
+      background: linear-gradient(120deg, var(--primary), var(--primary-2));
+      color: #fff;
+      font-weight: 600;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(122, 157, 255, 0.25);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <div id="app" class="card"></div>
+  </main>
+
+  <div id="challengeModal" class="modal" aria-hidden="true">
+    <div class="modal-card">
+      <div id="challengeRoot"></div>
+    </div>
+  </div>
+
+  <div id="toastWrap" class="toast-wrap" aria-live="polite"></div>
+
+  <script>
+    (function () {
+      "use strict";
+
+      /* ===== 步骤常量 ===== */
+      var STEPS = {
+        LOGIN: 0,
+        HOME: 1,
+        WRITE: 2,
+        ANALYZE: 3,
+        DELIVERED: 5,
+        PICK: 6,
+        DONE: 7
+      };
+
+      /* ===== 情绪关键词映射 ===== */
+      var emotionKeywordsMap = {
+        "开心": ["开心", "高兴", "快乐", "惊喜", "幸福", "顺利", "满足"],
+        "期待": ["期待", "希望", "愿望", "计划", "想要", "未来", "想试试"],
+        "迷茫": ["迷茫", "不知道", "无措", "看不清", "困惑", "纠结"],
+        "焦虑": ["焦虑", "紧张", "压力", "担心", "害怕", "怕来不及", "失眠"],
+        "失落": ["失落", "难过", "委屈", "伤心", "低落", "沮丧", "疲惫"],
+        "平静": ["平静", "还好", "普通", "稳定", "慢慢来", "日常"]
+      };
+
+      /* ===== 治愈回复模板 ===== */
+      var healingTemplates = {
+        "开心": [
+          "这份亮亮的心情真好，愿你把今天的开心轻轻收好。",
+          "平凡日子里的小确幸很珍贵，你值得拥有这样的小光。"
+        ],
+        "期待": [
+          "有期待就有方向，你已经在靠近想去的地方。",
+          "你的愿望很温柔，慢慢走，也是在向前。"
+        ],
+        "迷茫": [
+          "看不清也没关系，允许自己边走边找答案。",
+          "迷茫并不说明你不行，它只是人生的过渡天气。"
+        ],
+        "焦虑": [
+          "先把呼吸放慢一点点，你已经很努力了。",
+          "焦虑的时候先照顾好自己，慢一点也没关系。"
+        ],
+        "失落": [
+          "抱抱你，失落的时刻值得被好好接住。",
+          "你不需要立刻振作，先让心休息一下。"
+        ],
+        "平静": [
+          "平静也是一种力量，说明你在稳稳地生活。",
+          "今天的你很柔和，愿这份稳定继续陪你。"
+        ]
+      };
+
+      /* ===== 闯关题库 ===== */
+      var challengeQuestionBank = {
+        guessMood: [
+          { text: "我一直担心明天会出错，心里有点紧。", options: ["开心", "焦虑", "平静"], answer: "焦虑" },
+          { text: "今天完成了目标，走路都轻飘飘的。", options: ["失落", "开心", "迷茫"], answer: "开心" }
+        ],
+        puzzle: [
+          { sentence: "慢一点也没关系" },
+          { sentence: "你已经做得很好了" }
+        ],
+        match: [
+          { scene: "\uD83C\uDF27\uFE0F 深夜独自发呆", options: ["失落", "开心", "期待"], answer: "失落" },
+          { scene: "\uD83C\uDF05 清晨准备新计划", options: ["迷茫", "期待", "失落"], answer: "期待" }
+        ]
+      };
+
+      /* ===== 敏感词检测 ===== */
+      var sensitiveWords = ["傻", "滚", "垃圾", "去死", "废物", "辱骂"];
+      var crisisWords = ["轻生", "自杀", "不想活", "结束生命", "自残"];
+
+      /* ===== Storage 工具对象 ===== */
+      var storage = {
+        getToken: function () {
+          return localStorage.getItem("drift_token");
+        },
+        setToken: function (token) {
+          if (token) {
+            localStorage.setItem("drift_token", token);
+          } else {
+            localStorage.removeItem("drift_token");
+          }
+        },
+        getUser: function () {
+          var raw = localStorage.getItem("drift_user");
+          if (!raw) return null;
+          try {
+            return JSON.parse(raw);
+          } catch (e) {
+            return null;
+          }
+        },
+        setUser: function (user) {
+          if (user) {
+            localStorage.setItem("drift_user", JSON.stringify(user));
+          } else {
+            localStorage.removeItem("drift_user");
+          }
+        }
+      };
+
+      /* ===== API 请求封装 ===== */
+      function apiRequest(url, options) {
+        var token = storage.getToken();
+        var headers = {
+          "Content-Type": "application/json"
+        };
+        if (token) {
+          headers["Authorization"] = "Bearer " + token;
+        }
+        var config = {
+          method: options && options.method ? options.method : "GET",
+          headers: headers
+        };
+        if (options && options.body) {
+          config.body = JSON.stringify(options.body);
+        }
+        return fetch(url, config).then(function (res) {
+          if (res.status === 401) {
+            storage.setToken(null);
+            storage.setUser(null);
+            state.currentUser = null;
+            renderStep(STEPS.LOGIN);
+            return Promise.reject(new Error("登录已过期，请重新登录"));
+          }
+          return res.json().then(function (data) {
+            if (!res.ok) {
+              var errMsg = (data && data.message) ? data.message : "请求失败";
+              return Promise.reject(new Error(errMsg));
+            }
+            return data;
+          });
+        });
+      }
+
+      /* ===== DOM 引用 ===== */
+      var app = document.getElementById("app");
+      var challengeModal = document.getElementById("challengeModal");
+      var challengeRoot = document.getElementById("challengeRoot");
+      var toastWrap = document.getElementById("toastWrap");
+
+      /* ===== 应用状态 ===== */
+      var state = {
+        currentStep: STEPS.LOGIN,
+        currentUser: null,
+        globalStats: {
+          totalBottles: 0,
+          totalReplies: 0,
+          todayBottles: 0
+        },
+        draftText: "",
+        selectedTag: "",
+        emotionResult: null,
+        healingReply: "",
+        challengeProgress: {
+          stageIndex: 0,
+          passed: [false, false, false],
+          failCount: 0
+        },
+        pickedBottle: null,
+        createdBottleId: "",
+        replyText: "",
+        loginTab: "login",
+        loginLoading: false
+      };
+
+      /* ===== 工具函数 ===== */
+      function randomPick(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+      }
+
+      function escapeHtml(text) {
+        return String(text || "")
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#39;");
+      }
+
+      function checkSensitiveContent(text) {
+        var content = (text || "").toLowerCase();
+        if (!content) return { ok: true, level: "none" };
+        if (crisisWords.some(function (w) { return content.includes(w); })) {
+          return { ok: false, level: "crisis", message: "检测到高风险情绪词。请先照顾自己，并优先联系身边可信任的人或专业支持资源。" };
+        }
+        if (sensitiveWords.some(function (w) { return content.includes(w); })) {
+          return { ok: false, level: "sensitive", message: "内容里有不适合漂流的词语，换一种更温柔的表达再试试吧。" };
+        }
+        return { ok: true, level: "none" };
+      }
+
+      function analyzeEmotion(text, tag) {
+        var scoreMap = {};
+        Object.keys(emotionKeywordsMap).forEach(function (k) { scoreMap[k] = 0; });
+        var content = (text || "").toLowerCase();
+
+        Object.keys(emotionKeywordsMap).forEach(function (emotion) {
+          emotionKeywordsMap[emotion].forEach(function (kw) {
+            if (content.includes(kw)) scoreMap[emotion] += 2;
+          });
+        });
+
+        if (tag && scoreMap[tag] !== undefined) {
+          scoreMap[tag] += 4;
+        }
+
+        var winner = "平静";
+        var max = -1;
+        Object.keys(scoreMap).forEach(function (k) {
+          if (scoreMap[k] > max) {
+            max = scoreMap[k];
+            winner = k;
+          }
+        });
+
+        var intensity = calcEmotionIntensity(text, tag);
+        var level = intensity < 56 ? "轻微" : intensity < 70 ? "温和" : intensity < 84 ? "明显" : "浓烈";
+
+        return { type: winner, intensity: intensity, level: level };
+      }
+
+      function calcEmotionIntensity(text, tag) {
+        var base = 40;
+        var lenBonus = Math.min(Math.floor((text || "").length / 10), 18);
+        var punct = /[!！?？]/.test(text || "") ? 8 : 0;
+        var tagBonus = tag ? 8 : 0;
+        var rand = Math.floor(Math.random() * 20);
+        return Math.max(40, Math.min(95, base + lenBonus + punct + tagBonus + rand));
+      }
+
+      function generateHealingReply(emotionType, text) {
+        var templates = healingTemplates[emotionType] || healingTemplates["平静"];
+        var chosen = randomPick(templates);
+        var keywords = (text || "").replace(/[，。！？、,.!?]/g, " ").split(/\s+/).filter(Boolean).slice(0, 2);
+        var tail = keywords.length ? "我有看到你提到的「" + keywords.join(" / ") + "」，谢谢你愿意说出来。" : "你的感受被认真接住了。";
+        return chosen + " " + tail;
+      }
+
+      function setNote(id, text, type) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        if (!text) {
+          el.innerHTML = "";
+          return;
+        }
+        el.innerHTML = "<div class='note " + (type || "") + "'>" + escapeHtml(text) + "</div>";
+      }
+
+      function showToast(message, type) {
+        var node = document.createElement("div");
+        node.className = "toast" + (type === "error" ? " error" : "");
+        node.textContent = message;
+        toastWrap.appendChild(node);
+        setTimeout(function () { node.remove(); }, 2200);
+      }
+
+      function sparkle(container) {
+        if (!container) return;
+        for (var i = 0; i < 18; i += 1) {
+          var dot = document.createElement("i");
+          dot.className = "dot";
+          dot.style.left = Math.round(Math.random() * 100) + "%";
+          dot.style.top = Math.round(55 + Math.random() * 40) + "%";
+          dot.style.animationDelay = (Math.random() * 200) + "ms";
+          dot.style.background = Math.random() > 0.5 ? "rgba(121,216,197,.7)" : "rgba(123,157,255,.7)";
+          container.appendChild(dot);
+          setTimeout(function () { dot.remove(); }, 1100);
+        }
+      }
+
+      function getAvatarLetter(name) {
+        if (!name) return "?";
+        return name.charAt(0).toUpperCase();
+      }
+
+      /* ===== 页面渲染 ===== */
+      function renderStep(step) {
+        state.currentStep = step;
+        if (step === STEPS.LOGIN) return renderLogin();
+        if (step === STEPS.HOME) return renderHome();
+        if (step === STEPS.WRITE) return renderWrite();
+        if (step === STEPS.ANALYZE) return renderAnalyze();
+        if (step === STEPS.DELIVERED) return renderDelivered();
+        if (step === STEPS.PICK) return renderPick();
+        if (step === STEPS.DONE) return renderDone();
+      }
+
+      /* ===== LOGIN 页面 ===== */
+      function renderLogin() {
+        var tab = state.loginTab || "login";
+        var loadingHtml = state.loginLoading ? "<span class='loading'></span>" : "";
+
+        var tabsHtml = [
+          "<div class='tabs'>",
+          "  <button class='tab " + (tab === "login" ? "active" : "") + "' data-tab='login'>登录</button>",
+          "  <button class='tab " + (tab === "register" ? "active" : "") + "' data-tab='register'>注册</button>",
+          "  <button class='tab " + (tab === "anonymous" ? "active" : "") + "' data-tab='anonymous'>匿名体验</button>",
+          "</div>"
+        ].join("");
+
+        var formHtml = "";
+        if (tab === "login") {
+          formHtml = [
+            "<div class='login-form'>",
+            "  <div class='form-group'>",
+            "    <label for='loginUsername'>用户名</label>",
+            "    <input id='loginUsername' type='text' placeholder='请输入用户名' maxlength='20' autocomplete='username'>",
+            "  </div>",
+            "  <div class='form-group'>",
+            "    <label for='loginPassword'>密码</label>",
+            "    <input id='loginPassword' type='password' placeholder='请输入密码' autocomplete='current-password'>",
+            "  </div>",
+            "  <button class='btn' id='loginBtn' style='width:100%;' " + (state.loginLoading ? "disabled" : "") + ">" + loadingHtml + "登录</button>",
+            "</div>"
+          ].join("");
+        } else if (tab === "register") {
+          formHtml = [
+            "<div class='login-form'>",
+            "  <div class='form-group'>",
+            "    <label for='regUsername'>用户名</label>",
+            "    <input id='regUsername' type='text' placeholder='2-20个字符' maxlength='20' autocomplete='username'>",
+            "  </div>",
+            "  <div class='form-group'>",
+            "    <label for='regPassword'>密码</label>",
+            "    <input id='regPassword' type='password' placeholder='至少6个字符' autocomplete='new-password'>",
+            "  </div>",
+            "  <div class='form-group'>",
+            "    <label for='regPassword2'>确认密码</label>",
+            "    <input id='regPassword2' type='password' placeholder='再次输入密码' autocomplete='new-password'>",
+            "  </div>",
+            "  <button class='btn' id='regBtn' style='width:100%;' " + (state.loginLoading ? "disabled" : "") + ">" + loadingHtml + "注册</button>",
+            "</div>"
+          ].join("");
+        } else {
+          formHtml = [
+            "<div class='login-form' style='text-align:center;'>",
+            "  <p style='margin-bottom:16px;'>无需注册，系统将为你自动生成一个匿名身份。</p>",
+            "  <button class='btn mint' id='anonBtn' style='width:100%;' " + (state.loginLoading ? "disabled" : "") + ">" + loadingHtml + "匿名进入</button>",
+            "</div>"
+          ].join("");
+        }
+
+        app.innerHTML = [
+          "<h1>AI漂流瓶</h1>",
+          "<p>把情绪放进瓶子里，让温柔漂向远方。</p>",
+          "<div class='space'></div>",
+          tabsHtml,
+          formHtml,
+          "<div id='loginNote'></div>"
+        ].join("");
+
+        bindLoginEvents();
+      }
+
+      function bindLoginEvents() {
+        var tabs = app.querySelectorAll(".tab");
+        tabs.forEach(function (tab) {
+          tab.addEventListener("click", function () {
+            state.loginTab = tab.getAttribute("data-tab");
+            state.loginLoading = false;
+            renderLogin();
+          });
+        });
+
+        var loginBtn = document.getElementById("loginBtn");
+        if (loginBtn) {
+          loginBtn.addEventListener("click", handleLogin);
+        }
+
+        var regBtn = document.getElementById("regBtn");
+        if (regBtn) {
+          regBtn.addEventListener("click", handleRegister);
+        }
+
+        var anonBtn = document.getElementById("anonBtn");
+        if (anonBtn) {
+          anonBtn.addEventListener("click", handleAnonymous);
+        }
+
+        // 回车键提交
+        var loginPassword = document.getElementById("loginPassword");
+        if (loginPassword) {
+          loginPassword.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") handleLogin();
+          });
+        }
+        var regPassword2 = document.getElementById("regPassword2");
+        if (regPassword2) {
+          regPassword2.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") handleRegister();
+          });
+        }
+      }
+
+      function handleLogin() {
+        if (state.loginLoading) return;
+        var username = (document.getElementById("loginUsername") || {}).value || "";
+        var password = (document.getElementById("loginPassword") || {}).value || "";
+
+        username = username.trim();
+        password = password.trim();
+
+        if (!username || !password) {
+          setNote("loginNote", "请输入用户名和密码。", "error");
+          return;
+        }
+
+        state.loginLoading = true;
+        renderLogin();
+
+        apiRequest("/api/auth/login", {
+          method: "POST",
+          body: { username: username, password: password }
+        }).then(function (data) {
+          storage.setToken(data.token);
+          storage.setUser(data.user);
+          state.currentUser = data.user;
+          state.loginLoading = false;
+          showToast("登录成功，欢迎回来！");
+          loadGlobalStats();
+          renderStep(STEPS.HOME);
+        }).catch(function (err) {
+          state.loginLoading = false;
+          renderLogin();
+          setNote("loginNote", err.message || "登录失败，请重试。", "error");
+        });
+      }
+
+      function handleRegister() {
+        if (state.loginLoading) return;
+        var username = (document.getElementById("regUsername") || {}).value || "";
+        var password = (document.getElementById("regPassword") || {}).value || "";
+        var password2 = (document.getElementById("regPassword2") || {}).value || "";
+
+        username = username.trim();
+        password = password.trim();
+        password2 = password2.trim();
+
+        if (!username || !password) {
+          setNote("loginNote", "用户名和密码不能为空。", "error");
+          return;
+        }
+        if (username.length < 2 || username.length > 20) {
+          setNote("loginNote", "用户名长度应在2-20个字符之间。", "error");
+          return;
+        }
+        if (password.length < 6) {
+          setNote("loginNote", "密码长度至少6个字符。", "error");
+          return;
+        }
+        if (password !== password2) {
+          setNote("loginNote", "两次输入的密码不一致。", "error");
+          return;
+        }
+
+        state.loginLoading = true;
+        renderLogin();
+
+        apiRequest("/api/auth/register", {
+          method: "POST",
+          body: { username: username, password: password }
+        }).then(function (data) {
+          storage.setToken(data.token);
+          storage.setUser(data.user);
+          state.currentUser = data.user;
+          state.loginLoading = false;
+          showToast("注册成功，欢迎加入！");
+          loadGlobalStats();
+          renderStep(STEPS.HOME);
+        }).catch(function (err) {
+          state.loginLoading = false;
+          renderLogin();
+          setNote("loginNote", err.message || "注册失败，请重试。", "error");
+        });
+      }
+
+      function handleAnonymous() {
+        if (state.loginLoading) return;
+
+        state.loginLoading = true;
+        renderLogin();
+
+        apiRequest("/api/auth/anonymous", {
+          method: "POST",
+          body: {}
+        }).then(function (data) {
+          storage.setToken(data.token);
+          storage.setUser(data.user);
+          state.currentUser = data.user;
+          state.loginLoading = false;
+          showToast("匿名身份已生成，开始你的漂流之旅吧！");
+          loadGlobalStats();
+          renderStep(STEPS.HOME);
+        }).catch(function (err) {
+          state.loginLoading = false;
+          renderLogin();
+          setNote("loginNote", err.message || "匿名登录失败，请重试。", "error");
+        });
+      }
+
+      function handleLogout() {
+        storage.setToken(null);
+        storage.setUser(null);
+        state.currentUser = null;
+        state.pickedBottle = null;
+        state.draftText = "";
+        state.selectedTag = "";
+        state.emotionResult = null;
+        state.healingReply = "";
+        state.replyText = "";
+        state.createdBottleId = "";
+        showToast("已退出登录。");
+        renderStep(STEPS.LOGIN);
+      }
+
+      /* ===== 加载全局统计 ===== */
+      function loadGlobalStats() {
+        apiRequest("/api/bottles/stats", { method: "GET" }).then(function (data) {
+          state.globalStats = {
+            totalBottles: data.totalBottles || 0,
+            totalReplies: data.totalReplies || 0,
+            todayBottles: data.todayBottles || 0
+          };
+          // 如果当前在首页，刷新统计显示
+          if (state.currentStep === STEPS.HOME) {
+            renderHome();
+          }
+        }).catch(function () {
+          // 统计加载失败不阻塞
+        });
+      }
+
+      /* ===== 刷新当前用户信息 ===== */
+      function refreshCurrentUser() {
+        apiRequest("/api/auth/me", { method: "GET" }).then(function (data) {
+          if (data && data.user) {
+            state.currentUser = data.user;
+            storage.setUser(data.user);
+          }
+        }).catch(function () {
+          // 静默失败
+        });
+      }
+
+      /* ===== HOME 页面 ===== */
+      function renderHome() {
+        var user = state.currentUser;
+        var userBarHtml = "";
+        if (user) {
+          var anonTag = user.isAnonymous ? "<span class='anon-tag'>（匿名）</span>" : "";
+          userBarHtml = [
+            "<div class='user-bar'>",
+            "  <div class='user-info'>",
+            "    <div class='avatar'>" + escapeHtml(getAvatarLetter(user.username)) + "</div>",
+            "    <div><span class='user-name'>" + escapeHtml(user.username) + anonTag + "</span></div>",
+            "  </div>",
+            "  <button class='btn-logout' id='logoutBtn'>退出登录</button>",
+            "</div>"
+          ].join("");
+        }
+
+        var todayHeal = (user && user.stats) ? (user.stats.healCount || 0) : 0;
+        var totalSent = (user && user.stats) ? (user.stats.bottlesSent || 0) : 0;
+
+        app.innerHTML = [
+          userBarHtml,
+          "<h1>AI漂流瓶</h1>",
+          "<p>把情绪放进瓶子里，让温柔漂向远方。</p>",
+          "<div class='stats'>",
+          "  <div class='stat'><p>今日治愈次数</p><b>" + todayHeal + "</b></div>",
+          "  <div class='stat'><p>累计投瓶次数</p><b>" + totalSent + "</b></div>",
+          "  <div class='stat'><p>全站漂流瓶</p><b>" + state.globalStats.totalBottles + "</b></div>",
+          "  <div class='stat'><p>全站回复数</p><b>" + state.globalStats.totalReplies + "</b></div>",
+          "</div>",
+          "<div class='row'>",
+          "  <button class='btn' id='goWrite' aria-label='我来投瓶'>\u2728 我来投瓶</button>",
+          "  <button class='btn ghost' id='goPick' aria-label='我要捡瓶'>\uD83C\uDF0A 我要捡瓶</button>",
+          "</div>",
+          "<div class='space'></div>",
+          "<div class='panel'><p>全程匿名，AI会读懂情绪并引导温柔互动。你的心事会被认真对待。</p></div>"
+        ].join("");
+        bindEvents();
+      }
+
+      /* ===== WRITE 页面 ===== */
+      function renderWrite() {
+        app.innerHTML = [
+          "<h2>写下此刻的心情</h2>",
+          "<p>烦恼、愿望、开心小事，都可以安心诉说。</p>",
+          "<div class='space'></div>",
+          "<label class='label' for='draftInput'>你的漂流瓶内容</label>",
+          "<textarea id='draftInput' maxlength='300' aria-label='漂流瓶内容'>" + escapeHtml(state.draftText) + "</textarea>",
+          "<p class='muted' id='countTip'>已输入 " + (state.draftText || "").length + " / 300（建议10-300字）</p>",
+          "<div class='chips' id='tagWrap'></div>",
+          "<p class='muted'>可选标签辅助AI读懂你，不选也可以。</p>",
+          "<div class='row'>",
+          "  <button class='btn' id='analyzeBtn'>开始AI读懂我的心情</button>",
+          "  <button class='btn ghost' id='backHome'>返回首页</button>",
+          "</div>",
+          "<div id='writeNote'></div>"
+        ].join("");
+        var tags = ["开心", "期待", "迷茫", "焦虑", "失落", "平静"];
+        var wrap = document.getElementById("tagWrap");
+        wrap.innerHTML = tags.map(function (tag) {
+          var active = state.selectedTag === tag ? "active" : "";
+          return "<button class='chip " + active + "' data-tag='" + tag + "' type='button'>" + tag + "</button>";
+        }).join("");
+        bindEvents();
+      }
+
+      /* ===== ANALYZE 页面 ===== */
+      function renderAnalyze() {
+        if (!state.emotionResult) {
+          renderStep(STEPS.WRITE);
+          return;
+        }
+        var r = state.emotionResult;
+        app.innerHTML = [
+          "<h2>AI情绪解读完成</h2>",
+          "<div class='panel'>",
+          "<p><span class='badge'>心情类型：" + r.type + "</span><span class='badge'>情绪强度：" + r.level + "</span></p>",
+          "<div class='meter'><span style='width:" + r.intensity + "%'></span></div>",
+          "<p class='muted' style='margin-top:8px;'>你此刻的情绪很真实，不必勉强自己事事圆满。</p>",
+          "</div>",
+          "<div class='panel'>",
+          "<h3>给你的专属温柔回信</h3>",
+          "<p style='margin-top:6px;'>" + escapeHtml(state.healingReply) + "</p>",
+          "</div>",
+          "<div class='row'>",
+          "  <button class='btn mint' id='startChallenge'>开始趣味闯关</button>",
+          "  <button class='btn ghost' id='editDraft'>返回修改</button>",
+          "</div>",
+          "<div id='analyzeNote'></div>"
+        ].join("");
+        bindEvents();
+      }
+
+      /* ===== DELIVERED 页面 ===== */
+      function renderDelivered() {
+        app.innerHTML = [
+          "<h2>你的漂流瓶，已顺利出海 \uD83C\uDF0A</h2>",
+          "<p>匿名奔赴远方，会有陌生温柔为你停留。</p>",
+          "<div class='panel' style='position:relative;overflow:hidden;'>",
+          "<p id='matchText'>正在随机匹配陌生用户接收中\u2026</p>",
+          "<div class='particles' id='particleZone'></div>",
+          "</div>",
+          "<div class='row'>",
+          "  <button class='btn ghost' id='writeAgain'>再写一只瓶子</button>",
+          "  <button class='btn' id='goPickNow'>去捡一只瓶子</button>",
+          "</div>"
+        ].join("");
+        sparkle(document.getElementById("particleZone"));
+        setTimeout(function () {
+          var el = document.getElementById("matchText");
+          if (el) el.textContent = "匹配成功！等待他人的温柔回复即可。";
+        }, 1300);
+        bindEvents();
+      }
+
+      /* ===== PICK 页面 ===== */
+      function renderPick() {
+        var picked = state.pickedBottle;
+        if (!picked || !picked.content) {
+          app.innerHTML = [
+            "<h2>海面暂时空空的 \uD83C\uDF0A</h2>",
+            "<p>暂时没有漂流瓶出海，稍后再来邂逅温柔吧。</p>",
+            "<div class='row'><button class='btn' id='goWriteFromEmpty'>我来投递一只瓶子</button></div>"
+          ].join("");
+          bindEvents();
+          return;
+        }
+
+        var result = analyzeEmotion(picked.content, "");
+        app.innerHTML = [
+          "<h2>你捡到了一只陌生漂流瓶</h2>",
+          "<p>匿名心事，温柔对待就好。</p>",
+          "<div class='panel'>",
+          "  <h3>Ta的小声心事</h3>",
+          "  <p style='margin-top:6px;'>" + escapeHtml(picked.content) + "</p>",
+          "</div>",
+          "<div class='panel'>",
+          "  <h3>AI读懂了Ta的心情：" + result.type + "</h3>",
+          "  <p style='margin-top:6px;'>建议关键词：理解、共情、鼓励。简短真诚就很有力量。</p>",
+          "</div>",
+          "<label class='label' for='replyInput'>写下你的温柔回复（5-200字）</label>",
+          "<textarea id='replyInput' maxlength='200' aria-label='温柔回复'>" + escapeHtml(state.replyText) + "</textarea>",
+          "<p class='muted' id='replyCount'>已输入 " + (state.replyText || "").length + " / 200</p>",
+          "<div class='row'>",
+          "  <button class='btn' id='sendReply'>送出温柔回复 \u2728</button>",
+          "  <button class='btn ghost' id='pickAnother'>换一个漂流瓶</button>",
+          "</div>",
+          "<div id='replyNote'></div>"
+        ].join("");
+        bindEvents();
+      }
+
+      /* ===== DONE 页面 ===== */
+      function renderDone() {
+        app.innerHTML = [
+          "<h2>你完成了一次双向治愈 \uD83D\uDC8C</h2>",
+          "<p>每一次温柔回应，都在治愈一段细碎情绪。</p>",
+          "<div class='panel'>",
+          "<p><span class='badge'>治愈徽章</span> 温柔传递者</p>",
+          "<p style='margin-top:6px;'>你已经很棒了，愿这份善意也照亮你自己。</p>",
+          "</div>",
+          "<div class='row'>",
+          "  <button class='btn ghost' id='backHomeDone'>返回首页</button>",
+          "  <button class='btn mint' id='continuePick'>继续捡拾温柔</button>",
+          "</div>"
+        ].join("");
+        bindEvents();
+      }
+
+      /* ===== 事件绑定 ===== */
+      function bindEvents() {
+        var logoutBtn = document.getElementById("logoutBtn");
+        if (logoutBtn) logoutBtn.onclick = function () { handleLogout(); };
+
+        var goWrite = document.getElementById("goWrite");
+        if (goWrite) goWrite.onclick = function () { renderStep(STEPS.WRITE); };
+        var goPick = document.getElementById("goPick");
+        if (goPick) goPick.onclick = function () { preparePickAndGo(); };
+        var goWriteFromEmpty = document.getElementById("goWriteFromEmpty");
+        if (goWriteFromEmpty) goWriteFromEmpty.onclick = function () { renderStep(STEPS.WRITE); };
+
+        var draftInput = document.getElementById("draftInput");
+        if (draftInput) {
+          draftInput.oninput = function (e) {
+            state.draftText = e.target.value;
+            var c = document.getElementById("countTip");
+            if (c) c.textContent = "已输入 " + state.draftText.length + " / 300（建议10-300字）";
+          };
+        }
+
+        var tagWrap = document.getElementById("tagWrap");
+        if (tagWrap) {
+          tagWrap.onclick = function (e) {
+            var t = e.target;
+            if (!(t instanceof HTMLElement)) return;
+            var tag = t.getAttribute("data-tag");
+            if (!tag) return;
+            state.selectedTag = state.selectedTag === tag ? "" : tag;
+            renderStep(STEPS.WRITE);
+          };
+        }
+
+        var backHome = document.getElementById("backHome");
+        if (backHome) backHome.onclick = function () { renderStep(STEPS.HOME); };
+
+        var analyzeBtn = document.getElementById("analyzeBtn");
+        if (analyzeBtn) analyzeBtn.onclick = handleAnalyzeSubmit;
+
+        var editDraft = document.getElementById("editDraft");
+        if (editDraft) editDraft.onclick = function () { renderStep(STEPS.WRITE); };
+
+        var startChallenge = document.getElementById("startChallenge");
+        if (startChallenge) startChallenge.onclick = function () { initChallenge(); };
+
+        var writeAgain = document.getElementById("writeAgain");
+        if (writeAgain) writeAgain.onclick = function () { resetDraft(); renderStep(STEPS.WRITE); };
+        var goPickNow = document.getElementById("goPickNow");
+        if (goPickNow) goPickNow.onclick = function () { preparePickAndGo(); };
+
+        var replyInput = document.getElementById("replyInput");
+        if (replyInput) {
+          replyInput.oninput = function (e) {
+            state.replyText = e.target.value;
+            var c = document.getElementById("replyCount");
+            if (c) c.textContent = "已输入 " + state.replyText.length + " / 200";
+          };
+        }
+        var sendReply = document.getElementById("sendReply");
+        if (sendReply) sendReply.onclick = handleReplySubmit;
+
+        var pickAnother = document.getElementById("pickAnother");
+        if (pickAnother) pickAnother.onclick = function () { preparePickAndGo(true); };
+
+        var backHomeDone = document.getElementById("backHomeDone");
+        if (backHomeDone) backHomeDone.onclick = function () { resetDraft(); state.replyText = ""; renderStep(STEPS.HOME); };
+        var continuePick = document.getElementById("continuePick");
+        if (continuePick) continuePick.onclick = function () { preparePickAndGo(true); };
+      }
+
+      /* ===== 分析提交 ===== */
+      function handleAnalyzeSubmit() {
+        var text = state.draftText.trim();
+        if (!text) {
+          setNote("writeNote", "心事空空的哦，写下一点点心情，再出发吧。", "error");
+          return;
+        }
+        if (text.length < 10) {
+          setNote("writeNote", "再多说一点点，让情绪更完整就好啦。", "error");
+          return;
+        }
+        if (text.length > 300) {
+          setNote("writeNote", "内容有点多啦，精简一下更易被温柔读懂。", "error");
+          return;
+        }
+        var guard = checkSensitiveContent(text);
+        if (!guard.ok) {
+          if (guard.level === "crisis") {
+            setNote("writeNote", guard.message, "error");
+            setNote("writeNote", "你很重要。请优先联系可信任的人，或寻求专业帮助。", "safe");
+          } else {
+            setNote("writeNote", guard.message, "error");
+          }
+          return;
+        }
+
+        if (Math.random() < 0.08) {
+          setNote("writeNote", "网络有点慢，温柔正在加载中\u2026请重试一次。", "error");
+          return;
+        }
+
+        state.emotionResult = analyzeEmotion(text, state.selectedTag);
+        state.healingReply = generateHealingReply(state.emotionResult.type, text);
+        renderStep(STEPS.ANALYZE);
+      }
+
+      /* ===== 重置草稿 ===== */
+      function resetDraft() {
+        state.draftText = "";
+        state.selectedTag = "";
+        state.emotionResult = null;
+        state.healingReply = "";
+        state.challengeProgress = { stageIndex: 0, passed: [false, false, false], failCount: 0 };
+        state.createdBottleId = "";
+      }
+
+      /* ===== 闯关系统 ===== */
+      function initChallenge() {
+        state.challengeProgress = { stageIndex: 0, passed: [false, false, false], failCount: 0 };
+        challengeModal.classList.add("open");
+        challengeModal.setAttribute("aria-hidden", "false");
+        renderChallengeStage();
+      }
+
+      function renderChallengeStage() {
+        var idx = state.challengeProgress.stageIndex;
+        var title = "<p class='muted'>轻松小挑战｜进度 " + (idx + 1) + "/3（答错可重试）</p>";
+
+        if (idx === 0) {
+          var q = randomPick(challengeQuestionBank.guessMood);
+          challengeRoot.innerHTML = title +
+            "<h3>AI猜心情</h3>" +
+            "<p style='margin-top:8px;'>" + escapeHtml(q.text) + "</p>" +
+            "<div class='option-grid'>" +
+            q.options.map(function (opt) {
+              return "<button class='option' data-choice='" + opt + "'>" + opt + "</button>";
+            }).join("") +
+            "</div>" +
+            "<div class='row'><button class='btn ghost' id='closeChallenge'>稍后再来</button></div>" +
+            "<div id='challengeNote'></div>";
+          document.querySelectorAll("[data-choice]").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+              validatePuzzleAnswer("guessMood", { picked: btn.getAttribute("data-choice"), answer: q.answer });
+            });
+          });
+        } else if (idx === 1) {
+          var q = randomPick(challengeQuestionBank.puzzle);
+          var words = q.sentence.split("");
+          var shuffled = words.slice().sort(function () { return Math.random() - 0.5; });
+          challengeRoot.innerHTML = title +
+            "<h3>AI文字拼图</h3>" +
+            "<p style='margin-top:8px;'>点击词块按顺序重组句子。</p>" +
+            "<div class='word-answer' id='answerArea'></div>" +
+            "<div class='word-pool' id='poolArea'>" +
+            shuffled.map(function (w) { return "<button class='word' data-word='" + w + "'>" + w + "</button>"; }).join("") +
+            "</div>" +
+            "<div class='row'>" +
+            "  <button class='btn' id='checkPuzzle'>提交</button>" +
+            "  <button class='btn ghost' id='resetPuzzle'>重置</button>" +
+            "  <button class='btn ghost' id='closeChallenge'>稍后再来</button>" +
+            "</div>" +
+            "<div id='challengeNote'></div>";
+          var answerArea = document.getElementById("answerArea");
+          var poolArea = document.getElementById("poolArea");
+          poolArea.addEventListener("click", function (e) {
+            var target = e.target;
+            if (!(target instanceof HTMLElement)) return;
+            if (!target.classList.contains("word")) return;
+            answerArea.appendChild(target);
+          });
+          answerArea.addEventListener("click", function (e) {
+            var target = e.target;
+            if (!(target instanceof HTMLElement)) return;
+            if (!target.classList.contains("word")) return;
+            poolArea.appendChild(target);
+          });
+          document.getElementById("checkPuzzle").onclick = function () {
+            var built = Array.from(answerArea.querySelectorAll(".word")).map(function (n) { return n.textContent; }).join("");
+            validatePuzzleAnswer("puzzle", { picked: built, answer: q.sentence });
+          };
+          document.getElementById("resetPuzzle").onclick = function () {
+            Array.from(answerArea.querySelectorAll(".word")).forEach(function (n) { poolArea.appendChild(n); });
+          };
+        } else {
+          var q = randomPick(challengeQuestionBank.match);
+          challengeRoot.innerHTML = title +
+            "<h3>AI画面匹配</h3>" +
+            "<p style='margin-top:8px;'>场景：" + escapeHtml(q.scene) + "</p>" +
+            "<div class='option-grid'>" +
+            q.options.map(function (opt) { return "<button class='option' data-match='" + opt + "'>" + opt + "</button>"; }).join("") +
+            "</div>" +
+            "<div class='row'><button class='btn ghost' id='closeChallenge'>稍后再来</button></div>" +
+            "<div id='challengeNote'></div>";
+          document.querySelectorAll("[data-match]").forEach(function (btn) {
+            btn.addEventListener("click", function () {
+              validatePuzzleAnswer("match", { picked: btn.getAttribute("data-match"), answer: q.answer });
+            });
+          });
+        }
+
+        var close = document.getElementById("closeChallenge");
+        if (close) {
+          close.onclick = function () {
+            challengeModal.classList.remove("open");
+            challengeModal.setAttribute("aria-hidden", "true");
+          };
+        }
+      }
+
+      function validatePuzzleAnswer(type, payload) {
+        var ok = payload.picked === payload.answer;
+        if (ok) {
+          state.challengeProgress.passed[state.challengeProgress.stageIndex] = true;
+          state.challengeProgress.stageIndex += 1;
+          showToast("答对啦，继续下一关。", "info");
+          if (state.challengeProgress.stageIndex > 2) {
+            completeDelivery();
+            return;
+          }
+          renderChallengeStage();
+          return;
+        }
+
+        state.challengeProgress.failCount += 1;
+        setNote("challengeNote", "差一点点哦，再试一次就好～", "error");
+
+        if (state.challengeProgress.failCount >= 3) {
+          showToast("不用着急，已为你自动放行。", "info");
+          completeDelivery();
+        }
+      }
+
+      /* ===== 完成投递（API 版） ===== */
+      function completeDelivery() {
+        challengeModal.classList.remove("open");
+        challengeModal.setAttribute("aria-hidden", "true");
+
+        var text = state.draftText.trim();
+        var emotionType = state.emotionResult ? state.emotionResult.type : "平静";
+
+        // 先调用 POST /api/bottles 创建漂流瓶
+        apiRequest("/api/bottles", {
+          method: "POST",
+          body: {
+            content: text,
+            contentType: "free",
+            emotion: emotionType,
+            healingReply: state.healingReply
+          }
+        }).then(function (data) {
+          var bottleId = data.bottle.id;
+          state.createdBottleId = bottleId;
+
+          // 再调用 POST /api/bottles/:id/release 放飞
+          return apiRequest("/api/bottles/" + bottleId + "/release", {
+            method: "POST"
+          });
+        }).then(function () {
+          // 刷新用户信息和全局统计
+          refreshCurrentUser();
+          loadGlobalStats();
+          renderStep(STEPS.DELIVERED);
+        }).catch(function (err) {
+          showToast("投递失败：" + (err.message || "请重试"), "error");
+          renderStep(STEPS.ANALYZE);
+        });
+      }
+
+      /* ===== 捡漂流瓶（API 版） ===== */
+      function preparePickAndGo(forceAnother) {
+        if (forceAnother) {
+          state.pickedBottle = null;
+        }
+
+        app.innerHTML = [
+          "<h2>正在海面搜索\u2026</h2>",
+          "<p><span class='loading'></span>正在为你寻找一只漂流瓶</p>"
+        ].join("");
+
+        apiRequest("/api/bottles/random", {
+          method: "GET"
+        }).then(function (data) {
+          if (!data.bottle) {
+            state.pickedBottle = null;
+            renderStep(STEPS.PICK);
+            return;
+          }
+          state.pickedBottle = {
+            id: data.bottle.id,
+            content: data.bottle.content,
+            emotion: data.bottle.emotion,
+            healingReply: data.bottle.healingReply || "",
+            authorName: data.bottle.authorName || "匿名"
+          };
+          state.replyText = "";
+          renderStep(STEPS.PICK);
+        }).catch(function (err) {
+          showToast("获取漂流瓶失败：" + (err.message || "请重试"), "error");
+          state.pickedBottle = null;
+          renderStep(STEPS.PICK);
+        });
+      }
+
+      /* ===== 回复提交（API 版） ===== */
+      function handleReplySubmit() {
+        var text = state.replyText.trim();
+        if (!text) {
+          setNote("replyNote", "空空的字句，没办法传递温柔哦。", "error");
+          return;
+        }
+        if (text.length < 5) {
+          setNote("replyNote", "再多一点点温柔，就可以温暖对方啦。", "error");
+          return;
+        }
+        if (text.length > 200) {
+          setNote("replyNote", "回复稍微精简一点，更容易被读完。", "error");
+          return;
+        }
+        var guard = checkSensitiveContent(text);
+        if (!guard.ok) {
+          setNote("replyNote", guard.message, "error");
+          return;
+        }
+
+        if (!state.pickedBottle || !state.pickedBottle.id) {
+          setNote("replyNote", "漂流瓶信息丢失，请重新捡取。", "error");
+          return;
+        }
+
+        var sendBtn = document.getElementById("sendReply");
+        if (sendBtn) sendBtn.disabled = true;
+
+        apiRequest("/api/bottles/" + state.pickedBottle.id + "/reply", {
+          method: "POST",
+          body: { content: text }
+        }).then(function () {
+          // 刷新用户统计
+          refreshCurrentUser();
+          state.replyText = "";
+          state.pickedBottle = null;
+          renderStep(STEPS.DONE);
+        }).catch(function (err) {
+          if (sendBtn) sendBtn.disabled = false;
+          setNote("replyNote", err.message || "回复失败，请重试。", "error");
+        });
+      }
+
+      /* ===== 初始化 ===== */
+      function init() {
+        var token = storage.getToken();
+        var user = storage.getUser();
+
+        if (token && user) {
+          state.currentUser = user;
+          loadGlobalStats();
+          refreshCurrentUser();
+          renderStep(STEPS.HOME);
+        } else {
+          storage.setToken(null);
+          storage.setUser(null);
+          renderStep(STEPS.LOGIN);
+        }
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>

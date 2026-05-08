@@ -1,0 +1,1908 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI治愈漂流瓶</title>
+  <style>
+    :root {
+      --bg: #f8fbff;
+      --bg-soft: #eef5ff;
+      --card: #fffef9;
+      --text: #4f5070;
+      --sub: #7e80a1;
+      --primary: #9dbdff;
+      --primary-soft: #e8f0ff;
+      --secondary: #d8bcff;
+      --pink: #ffd9eb;
+      --yellow: #fff1b6;
+      --purple: #e8ddff;
+      --ok: #8ecfb0;
+      --danger: #f6a5b7;
+      --border: #e5e4f5;
+      --stroke: #d6d6eb;
+      --shadow: 0 12px 24px rgba(165, 173, 230, 0.2);
+      --radius: 24px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      background:
+        radial-gradient(circle at 18% 20%, #e7f1ff 0, #f8fbff 42%),
+        radial-gradient(circle at 86% 8%, #ffe8f3 0, rgba(255, 232, 243, 0) 38%),
+        linear-gradient(150deg, #edf6ff, #fff6fb 55%, #f6f4ff 100%);
+      font-family: "Nunito", "Quicksand", "Microsoft YaHei", "PingFang SC", system-ui, sans-serif;
+      color: var(--text);
+      min-height: 100vh;
+      position: relative;
+      overflow-x: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        radial-gradient(rgba(255, 255, 255, 0.45) 1px, transparent 1px),
+        radial-gradient(rgba(255, 247, 220, 0.55) 1px, transparent 1px);
+      background-size: 20px 20px, 28px 28px;
+      background-position: 0 0, 8px 10px;
+      mix-blend-mode: soft-light;
+      opacity: 0.36;
+    }
+
+    .app {
+      width: min(980px, 100%);
+      margin: 0 auto;
+      padding: 20px 16px 40px;
+      position: relative;
+      z-index: 2;
+    }
+
+    .topbar {
+      background: rgba(255, 255, 255, 0.82);
+      border: 1px solid var(--stroke);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(8px);
+      border-radius: 20px;
+      padding: 12px;
+      position: sticky;
+      top: 10px;
+      z-index: 9;
+    }
+
+    .top-nav {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 8px;
+    }
+
+    .nav-btn {
+      border: 1px solid var(--stroke);
+      background: linear-gradient(160deg, #fff8fd, #f5f9ff);
+      border-radius: 999px;
+      padding: 10px 6px;
+      color: var(--sub);
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform .28s cubic-bezier(.19,1.7,.4,1), box-shadow .2s ease;
+      box-shadow: 0 6px 12px rgba(180, 186, 230, 0.16);
+    }
+
+    .nav-btn.active {
+      color: #5d5e8f;
+      background: linear-gradient(120deg, #ffe8f3, #e8f0ff);
+      border-color: #d8deff;
+      transform: translateY(-1px);
+    }
+
+    .screen { display: none; margin-top: 16px; }
+    .screen.active { display: block; }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius);
+      border: 1px solid var(--stroke);
+      box-shadow: var(--shadow);
+      padding: 16px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      right: -40px;
+      top: -35px;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 236, 199, 0.45), rgba(255, 236, 199, 0));
+      pointer-events: none;
+    }
+
+    .title {
+      margin: 0;
+      font-size: 24px;
+      color: #5f608d;
+      text-shadow: 1px 1px 0 #fff, 0 0 1px #b6b8df;
+      letter-spacing: .4px;
+    }
+    .sub { color: var(--sub); line-height: 1.7; }
+    .chip {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      background: linear-gradient(120deg, #fff8c8, #f0e7ff);
+      color: #7875a8;
+      margin-right: 6px;
+      margin-bottom: 6px;
+      border: 1px solid #e8ddac;
+    }
+
+    textarea, input, select {
+      width: 100%;
+      border: 1px solid var(--stroke);
+      border-radius: 16px;
+      padding: 11px 12px;
+      font-size: 15px;
+      background: #fffdfa;
+      color: var(--text);
+      outline: none;
+      box-shadow: inset 0 2px 4px rgba(203, 219, 232, 0.14);
+    }
+
+    textarea { min-height: 130px; resize: vertical; line-height: 1.6; }
+
+    .btn {
+      border: 1px solid rgba(221, 214, 244, 0.9);
+      border-radius: 999px;
+      padding: 11px 14px;
+      cursor: pointer;
+      font-size: 15px;
+      font-weight: 700;
+      background: linear-gradient(140deg, #fcdaf2, #e4eaff 65%, #fff2bc);
+      color: #6f6d99;
+      box-shadow: 0 8px 18px rgba(172, 179, 235, 0.26);
+      transform-origin: center;
+      transition: transform .38s cubic-bezier(.19,1.7,.4,1), box-shadow .2s ease;
+    }
+
+    .btn:hover, .btn:focus-visible, .nav-btn:hover {
+      transform: scale(1.03);
+      box-shadow: 0 11px 20px rgba(165, 168, 230, 0.3);
+    }
+
+    .btn.ghost {
+      background: linear-gradient(140deg, #fff, #f5f8ff);
+      color: var(--sub);
+      border: 1px solid var(--stroke);
+    }
+
+    .btn.ok { background: linear-gradient(120deg, #daf8ee, #d5f3ff); }
+    .btn.danger { background: linear-gradient(120deg, #ffe3ef, #ffe7c9); }
+
+    .row { display: flex; gap: 10px; flex-wrap: wrap; }
+    .row > * { flex: 1; min-width: 180px; }
+
+    .note {
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-top: 10px;
+      background: #f6f7ff;
+      border: 1px dashed #d7d9f1;
+      color: #4a5090;
+      line-height: 1.7;
+    }
+
+    .error {
+      background: #fff2f4;
+      border-color: #ffc5cc;
+      color: #be3d4e;
+    }
+
+    .success {
+      background: #f0fff7;
+      border-color: #9ce8c4;
+      color: #1c7e54;
+    }
+
+    .challenge {
+      border: 1px solid var(--stroke);
+      border-radius: 18px;
+      padding: 12px;
+      margin-top: 12px;
+      background: linear-gradient(160deg, #fffdf7, #f8fbff);
+    }
+
+    .challenge.done {
+      border-color: #a7e7c7;
+      background: #f4fff9;
+    }
+
+    .options {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 8px;
+      margin: 8px 0;
+    }
+
+    .option-btn {
+      border: 1px solid var(--stroke);
+      border-radius: 14px;
+      background: #fffdfa;
+      padding: 9px 10px;
+      text-align: left;
+      cursor: pointer;
+      font-size: 14px;
+      transition: transform .3s cubic-bezier(.19,1.7,.4,1), background .2s ease;
+    }
+
+    .option-btn:hover {
+      transform: scale(1.02);
+      background: #f7f8ff;
+    }
+
+    .option-btn.selected { border-color: #7c8dff; background: #edf0ff; }
+
+    .progress {
+      width: 100%;
+      height: 12px;
+      border-radius: 999px;
+      background: #ecebf9;
+      overflow: hidden;
+      margin: 10px 0;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #b0c8ff, #ead1ff, #ffe9bb);
+      transition: width .3s ease;
+    }
+
+    .drift {
+      width: 132px;
+      height: 170px;
+      margin: 14px auto;
+      background: linear-gradient(165deg, rgba(255, 255, 255, 0.92), rgba(212, 236, 255, 0.55));
+      border: 2px solid rgba(193, 215, 243, 0.95);
+      border-radius: 46% 46% 38% 38% / 46% 46% 52% 52%;
+      animation: bottleFloat 5.4s ease-in-out infinite;
+      position: relative;
+      box-shadow: inset -10px -12px 20px rgba(171, 201, 235, 0.26), 0 8px 16px rgba(159, 176, 229, 0.24);
+      transform-origin: 50% 60%;
+    }
+
+    .drift::after {
+      content: "漂流中...";
+      position: absolute;
+      bottom: -22px;
+      width: 100%;
+      text-align: center;
+      color: var(--sub);
+      font-size: 13px;
+    }
+
+    .drift::before {
+      content: "";
+      position: absolute;
+      inset: 24px 22px 30px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255,255,255,.55) 0 3px, transparent 4px),
+        radial-gradient(circle at 70% 45%, rgba(255,255,255,.4) 0 2px, transparent 3px),
+        radial-gradient(circle at 50% 74%, rgba(255,255,255,.4) 0 2px, transparent 3px);
+      opacity: .9;
+    }
+
+    @keyframes bottleFloat {
+      0%,100% { transform: translateY(0); }
+      50% { transform: translateY(-10px) rotate(4deg); }
+    }
+
+    .story {
+      border: 1px solid var(--stroke);
+      border-radius: 18px;
+      padding: 12px;
+      margin-top: 10px;
+      background: #fffefa;
+    }
+
+    .small { font-size: 13px; color: var(--sub); }
+    .center { text-align: center; }
+
+    .decor-layer {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+      z-index: 0;
+    }
+
+    .deco {
+      position: absolute;
+      opacity: .65;
+      animation: floaty linear infinite;
+    }
+
+    .star {
+      width: 18px;
+      height: 18px;
+      clip-path: polygon(50% 0%, 61% 38%, 100% 38%, 68% 59%, 79% 100%, 50% 73%, 21% 100%, 32% 59%, 0% 38%, 39% 38%);
+      background: var(--deco-color, #ffd474);
+      filter: drop-shadow(0 2px 2px rgba(175, 177, 228, .2));
+    }
+
+    .bubble {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      border: 2px solid rgba(255,255,255,.75);
+      background: rgba(200, 229, 255, 0.35);
+    }
+
+    .cloud {
+      width: 54px;
+      height: 24px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, .76);
+      box-shadow: 18px -8px 0 rgba(255,255,255,.78), 36px 0 0 rgba(255,255,255,.72);
+    }
+
+    @keyframes floaty {
+      from { transform: translateY(0px) translateX(0px); }
+      to { transform: translateY(-36px) translateX(12px); }
+    }
+
+    .soft-popup {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%) scale(.88);
+      background: linear-gradient(155deg, #fffef8, #f8f9ff);
+      border: 1px solid var(--stroke);
+      border-radius: 24px;
+      box-shadow: 0 18px 30px rgba(156, 166, 226, 0.28);
+      width: min(360px, 90vw);
+      padding: 18px 16px;
+      text-align: center;
+      z-index: 30;
+      opacity: 0;
+      pointer-events: none;
+      transition: all .35s ease;
+    }
+
+    .soft-popup.show {
+      opacity: 1;
+      pointer-events: auto;
+      transform: translate(-50%, -50%) scale(1);
+    }
+
+    .sparkles {
+      margin: 0 auto 8px;
+      width: 80px;
+      height: 18px;
+      position: relative;
+    }
+
+    .sparkles span {
+      position: absolute;
+      display: block;
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #ffe695;
+      animation: blink 1.8s ease infinite;
+    }
+
+    .sparkles span:nth-child(2) { left: 26px; background: #c8dcff; animation-delay: .2s; }
+    .sparkles span:nth-child(3) { left: 52px; background: #ffd3e5; animation-delay: .4s; }
+
+    @keyframes blink {
+      0%,100% { transform: scale(.7); opacity: .55; }
+      50% { transform: scale(1.1); opacity: 1; }
+    }
+
+    @media (max-width: 600px) {
+      .title { font-size: 21px; }
+      .top-nav { grid-template-columns: repeat(2, 1fr); }
+    }
+
+    /* ===== 新增 CSS：用户系统 ===== */
+    .user-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: rgba(255, 255, 255, 0.9);
+      border-radius: 12px;
+      padding: 8px 14px;
+      margin-bottom: 8px;
+      border: 1px solid var(--stroke);
+    }
+
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .avatar {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--primary), var(--secondary));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 700;
+      flex-shrink: 0;
+    }
+
+    .user-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: #5f608d;
+    }
+
+    .user-healing {
+      font-size: 12px;
+      color: var(--sub);
+    }
+
+    .logout-btn {
+      border: 1px solid var(--stroke);
+      border-radius: 999px;
+      padding: 5px 12px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      background: linear-gradient(140deg, #fff, #f5f8ff);
+      color: var(--sub);
+      transition: transform .28s cubic-bezier(.19,1.7,.4,1), box-shadow .2s ease;
+    }
+
+    .logout-btn:hover {
+      transform: scale(1.03);
+      box-shadow: 0 4px 10px rgba(165, 168, 230, 0.2);
+    }
+
+    .login-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      background: rgba(248, 251, 255, 0.95);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      backdrop-filter: blur(6px);
+    }
+
+    .login-overlay.hidden {
+      display: none;
+    }
+
+    .login-card {
+      max-width: 400px;
+      width: 90vw;
+      background: #fffef9;
+      border-radius: 24px;
+      padding: 24px;
+      box-shadow: 0 18px 40px rgba(156, 166, 226, 0.28);
+      border: 1px solid var(--stroke);
+      position: relative;
+    }
+
+    .login-card .title {
+      text-align: center;
+      margin-bottom: 16px;
+    }
+
+    .login-tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      justify-content: center;
+    }
+
+    .login-tab {
+      padding: 8px 16px;
+      cursor: pointer;
+      border-radius: 999px;
+      border: 1px solid var(--stroke);
+      background: linear-gradient(160deg, #fff8fd, #f5f9ff);
+      color: var(--sub);
+      font-weight: 700;
+      font-size: 14px;
+      transition: transform .28s cubic-bezier(.19,1.7,.4,1), box-shadow .2s ease, background .2s ease;
+    }
+
+    .login-tab:hover {
+      transform: scale(1.03);
+    }
+
+    .login-tab.active {
+      background: linear-gradient(120deg, #ffe8f3, #e8f0ff);
+      border-color: #d8deff;
+      color: #5d5e8f;
+    }
+
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 700;
+      color: #5f608d;
+      margin-bottom: 6px;
+    }
+
+    .login-form {
+      display: none;
+    }
+
+    .login-form.active {
+      display: block;
+    }
+
+    .login-msg {
+      border-radius: 12px;
+      padding: 10px 12px;
+      margin-top: 12px;
+      background: #f6f7ff;
+      border: 1px dashed #d7d9f1;
+      color: #4a5090;
+      line-height: 1.7;
+      font-size: 14px;
+      display: none;
+    }
+
+    .login-msg.error {
+      background: #fff2f4;
+      border-color: #ffc5cc;
+      color: #be3d4e;
+    }
+
+    .login-msg.success {
+      background: #f0fff7;
+      border-color: #9ce8c4;
+      color: #1c7e54;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid var(--stroke);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      vertical-align: middle;
+      margin-right: 6px;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .btn:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none !important;
+    }
+  </style>
+</head>
+<body>
+  <div class="decor-layer" aria-hidden="true">
+    <div class="deco star" style="left:6%; top:13%; --deco-color:#ffd77e; animation-duration:7.8s;"></div>
+    <div class="deco star" style="left:84%; top:24%; --deco-color:#b5d4ff; animation-duration:8.6s;"></div>
+    <div class="deco star" style="left:77%; top:72%; --deco-color:#ffc4e2; animation-duration:9.2s;"></div>
+    <div class="deco bubble" style="left:12%; top:74%; animation-duration:10s;"></div>
+    <div class="deco bubble" style="left:88%; top:57%; animation-duration:8.3s;"></div>
+    <div class="deco cloud" style="left:8%; top:34%; animation-duration:13s;"></div>
+    <div class="deco cloud" style="left:76%; top:10%; animation-duration:14s;"></div>
+  </div>
+  <div id="softPopup" class="soft-popup">
+    <div class="sparkles"><span></span><span></span><span></span></div>
+    <div id="softPopupText"></div>
+  </div>
+
+  <!-- 登录覆盖层 -->
+  <div id="loginOverlay" class="login-overlay">
+    <div class="login-card">
+      <h1 class="title">AI治愈漂流瓶</h1>
+      <p class="sub center" style="margin-bottom:16px;">登录后开始你的治愈之旅</p>
+      <div class="login-tabs">
+        <button class="login-tab active" data-tab="login">登录</button>
+        <button class="login-tab" data-tab="register">注册</button>
+        <button class="login-tab" data-tab="anonymous">匿名体验</button>
+      </div>
+
+      <!-- 登录表单 -->
+      <form id="loginForm" class="login-form active">
+        <div class="form-group">
+          <label>用户名</label>
+          <input type="text" id="loginUsername" placeholder="请输入用户名" required />
+        </div>
+        <div class="form-group">
+          <label>密码</label>
+          <input type="password" id="loginPassword" placeholder="请输入密码" required />
+        </div>
+        <button type="submit" class="btn" style="width:100%;">登录</button>
+      </form>
+
+      <!-- 注册表单 -->
+      <form id="registerForm" class="login-form">
+        <div class="form-group">
+          <label>用户名</label>
+          <input type="text" id="registerUsername" placeholder="给自己取个名字" required />
+        </div>
+        <div class="form-group">
+          <label>密码</label>
+          <input type="password" id="registerPassword" placeholder="至少6位密码" required minlength="6" />
+        </div>
+        <div class="form-group">
+          <label>确认密码</label>
+          <input type="password" id="registerConfirm" placeholder="再次输入密码" required />
+        </div>
+        <button type="submit" class="btn" style="width:100%;">注册</button>
+      </form>
+
+      <!-- 匿名体验 -->
+      <form id="anonymousForm" class="login-form">
+        <div class="form-group">
+          <label>昵称（可选）</label>
+          <input type="text" id="anonymousNickname" placeholder="给自己取个临时昵称" />
+        </div>
+        <p class="sub small" style="margin-bottom:12px;">匿名模式下数据仅保存在本地，清除浏览器后将丢失。</p>
+        <button type="submit" class="btn ghost" style="width:100%;">以匿名身份进入</button>
+      </form>
+
+      <div id="loginMsg" class="login-msg"></div>
+    </div>
+  </div>
+
+  <div id="appContainer" class="app" style="display:none;">
+    <div class="topbar">
+      <div id="userBar" class="user-bar">
+        <div class="user-info">
+          <div class="avatar" id="avatarInitial">?</div>
+          <div>
+            <div class="user-name" id="userNameDisplay">未登录</div>
+            <div class="user-healing" id="userHealingDisplay">治愈值: 0</div>
+          </div>
+        </div>
+        <button id="logoutBtn" class="logout-btn">退出</button>
+      </div>
+      <div class="top-nav">
+        <button class="nav-btn active" data-screen="home">投瓶</button>
+        <button class="nav-btn" data-screen="pick">捡瓶</button>
+        <button class="nav-btn" data-screen="stories">故事流</button>
+        <button class="nav-btn" data-screen="profile">我的</button>
+      </div>
+    </div>
+
+    <section id="home" class="screen active">
+      <div class="card">
+        <h1 class="title">AI治愈漂流瓶</h1>
+        <p class="sub">写下今天的小烦恼、小愿望或小开心，AI会读懂你的情绪，陪你闯关，再把瓶子匿名漂向陌生人。</p>
+        <div style="margin:10px 0 8px;">
+          <span class="chip">匿名</span>
+          <span class="chip">3分钟轻互动</span>
+          <span class="chip">AI温柔引导</span>
+        </div>
+        <div class="row" style="margin-bottom:10px;">
+          <select id="contentType">
+            <option value="trouble">日常小烦恼</option>
+            <option value="wish">个人小愿望</option>
+            <option value="happy">今日开心小事</option>
+            <option value="free">随手写写</option>
+          </select>
+        </div>
+        <textarea id="bottleInput" placeholder="例如：最近有点焦虑，担心自己做不好..."></textarea>
+        <div class="row" style="margin-top:10px;">
+          <button id="createBottleBtn" class="btn">投递漂流瓶</button>
+          <button id="mockFillBtn" class="btn ghost">随机示例</button>
+        </div>
+        <div id="homeMsg" class="note" style="display:none;"></div>
+      </div>
+
+      <div id="analysisCard" class="card" style="display:none; margin-top:12px;"></div>
+      <div id="challengeCard" class="card" style="display:none; margin-top:12px;"></div>
+      <div id="releaseCard" class="card center" style="display:none; margin-top:12px;"></div>
+    </section>
+
+    <section id="pick" class="screen">
+      <div class="card">
+        <h2 class="title" style="font-size:22px;">捡一个漂流瓶</h2>
+        <p class="sub">你会收到一位陌生人的匿名心情，AI会给你共情建议，帮助你写出温柔回复。</p>
+        <button id="pickBottleBtn" class="btn">随机捡瓶</button>
+        <div id="pickBox" style="display:none; margin-top:12px;"></div>
+        <div id="pickMsg" class="note" style="display:none;"></div>
+      </div>
+    </section>
+
+    <section id="stories" class="screen">
+      <div class="card">
+        <h2 class="title" style="font-size:22px;">治愈故事流</h2>
+        <p class="sub">所有内容均匿名脱敏展示。每一次温柔回复，都会让世界亮一点点。</p>
+        <div id="storyList"></div>
+      </div>
+    </section>
+
+    <section id="profile" class="screen">
+      <div class="card">
+        <h2 class="title" style="font-size:22px;">我的治愈进度</h2>
+        <div id="profileInfo" class="note" style="margin-top:10px;"></div>
+        <div class="row" style="margin-top:10px;">
+          <button id="checkinBtn" class="btn ok">今日签到</button>
+          <button id="resetBtn" class="btn ghost">重置数据</button>
+        </div>
+        <div id="taskList" style="margin-top:10px;"></div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    // ===== API 请求封装 =====
+    const API_BASE = "";  // 同域部署时为空，跨域时改为完整地址如 "http://localhost:3000"
+
+    async function apiRequest(url, options = {}) {
+      const token = getToken();
+      const headers = {
+        "Content-Type": "application/json",
+        ...(options.headers || {})
+      };
+      if (token) {
+        headers["Authorization"] = `Bearer ${token}`;
+      }
+      try {
+        const resp = await fetch(API_BASE + url, {
+          ...options,
+          headers
+        });
+        const data = await resp.json();
+        if (!resp.ok) {
+          if (resp.status === 401) {
+            // token 过期或无效，清除登录态
+            clearAuth();
+            showLoginOverlay();
+            throw new Error(data.message || "登录已过期，请重新登录");
+          }
+          throw new Error(data.message || `请求失败 (${resp.status})`);
+        }
+        return data;
+      } catch (err) {
+        if (err.message === "登录已过期，请重新登录") throw err;
+        throw new Error(err.message || "网络请求失败，请检查网络连接");
+      }
+    }
+
+    // ===== Storage 工具 =====
+    function getToken() {
+      try { return localStorage.getItem("drift_token"); } catch { return null; }
+    }
+    function setToken(token) {
+      try { localStorage.setItem("drift_token", token); } catch {}
+    }
+    function getUser() {
+      try {
+        const raw = localStorage.getItem("drift_user");
+        return raw ? JSON.parse(raw) : null;
+      } catch { return null; }
+    }
+    function setUser(user) {
+      try { localStorage.setItem("drift_user", JSON.stringify(user)); } catch {}
+    }
+    function clearAuth() {
+      try {
+        localStorage.removeItem("drift_token");
+        localStorage.removeItem("drift_user");
+      } catch {}
+    }
+
+    // ===== 用户状态 =====
+    let currentUser = null;  // { _id, username, nickname, healingPoint, streak, badges, lastCheckinDate, ... }
+
+    function updateCurrentUserUI() {
+      if (!currentUser) return;
+      const name = currentUser.nickname || currentUser.username || "匿名用户";
+      const initial = name.charAt(0).toUpperCase();
+      document.getElementById("avatarInitial").textContent = initial;
+      document.getElementById("userNameDisplay").textContent = name;
+      document.getElementById("userHealingDisplay").textContent = `治愈值: ${currentUser.healingPoint || 0}`;
+    }
+
+    // ===== 登录覆盖层 =====
+    const loginOverlay = document.getElementById("loginOverlay");
+    const appContainer = document.getElementById("appContainer");
+    const loginMsg = document.getElementById("loginMsg");
+    const loginTabs = document.querySelectorAll(".login-tab");
+    const loginForms = document.querySelectorAll(".login-form");
+
+    function showLoginOverlay() {
+      loginOverlay.classList.remove("hidden");
+      appContainer.style.display = "none";
+    }
+
+    function hideLoginOverlay() {
+      loginOverlay.classList.add("hidden");
+      appContainer.style.display = "";
+    }
+
+    function showLoginMsg(text, type = "") {
+      loginMsg.style.display = "block";
+      loginMsg.className = `login-msg ${type}`.trim();
+      loginMsg.textContent = text;
+    }
+
+    function hideLoginMsg() {
+      loginMsg.style.display = "none";
+    }
+
+    // Tab 切换
+    loginTabs.forEach(tab => {
+      tab.addEventListener("click", () => {
+        loginTabs.forEach(t => t.classList.remove("active"));
+        tab.classList.add("active");
+        loginForms.forEach(f => f.classList.remove("active"));
+        const targetId = tab.dataset.tab + "Form";
+        document.getElementById(targetId).classList.add("active");
+        hideLoginMsg();
+      });
+    });
+
+    // 登录
+    document.getElementById("loginForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hideLoginMsg();
+      const username = document.getElementById("loginUsername").value.trim();
+      const password = document.getElementById("loginPassword").value;
+      if (!username || !password) return showLoginMsg("请填写用户名和密码", "error");
+
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="loading"></span>登录中...';
+
+      try {
+        const data = await apiRequest("/api/auth/login", {
+          method: "POST",
+          body: JSON.stringify({ username, password })
+        });
+        setToken(data.token);
+        currentUser = data.user;
+        setUser(data.user);
+        hideLoginOverlay();
+        updateCurrentUserUI();
+        initApp();
+        showSoftPopup(`欢迎回来，${currentUser.nickname || currentUser.username}`);
+      } catch (err) {
+        showLoginMsg(err.message, "error");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "登录";
+      }
+    });
+
+    // 注册
+    document.getElementById("registerForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hideLoginMsg();
+      const username = document.getElementById("registerUsername").value.trim();
+      const password = document.getElementById("registerPassword").value;
+      const confirm = document.getElementById("registerConfirm").value;
+
+      if (!username || !password) return showLoginMsg("请填写用户名和密码", "error");
+      if (password.length < 6) return showLoginMsg("密码至少需要6位", "error");
+      if (password !== confirm) return showLoginMsg("两次输入的密码不一致", "error");
+
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="loading"></span>注册中...';
+
+      try {
+        const data = await apiRequest("/api/auth/register", {
+          method: "POST",
+          body: JSON.stringify({ username, password })
+        });
+        setToken(data.token);
+        currentUser = data.user;
+        setUser(data.user);
+        hideLoginOverlay();
+        updateCurrentUserUI();
+        initApp();
+        showSoftPopup(`注册成功，欢迎 ${currentUser.nickname || currentUser.username}`);
+      } catch (err) {
+        showLoginMsg(err.message, "error");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "注册";
+      }
+    });
+
+    // 匿名体验
+    document.getElementById("anonymousForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      hideLoginMsg();
+      const nickname = document.getElementById("anonymousNickname").value.trim();
+
+      const submitBtn = e.target.querySelector('button[type="submit"]');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span class="loading"></span>进入中...';
+
+      try {
+        const data = await apiRequest("/api/auth/anonymous", {
+          method: "POST",
+          body: JSON.stringify({ nickname: nickname || undefined })
+        });
+        setToken(data.token);
+        currentUser = data.user;
+        setUser(data.user);
+        hideLoginOverlay();
+        updateCurrentUserUI();
+        initApp();
+        showSoftPopup("以匿名身份进入，祝你今天好心情");
+      } catch (err) {
+        // 匿名接口不可用时，降级为纯本地模式
+        currentUser = {
+          _id: `anon_${Date.now()}`,
+          username: `anon_${Math.random().toString(36).slice(2, 8)}`,
+          nickname: nickname || "匿名旅人",
+          healingPoint: 0,
+          streak: 0,
+          badges: [],
+          lastCheckinDate: "",
+          isAnonymous: true
+        };
+        setToken("anonymous_local");
+        setUser(currentUser);
+        hideLoginOverlay();
+        updateCurrentUserUI();
+        initApp();
+        showSoftPopup("已进入本地匿名模式");
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = "以匿名身份进入";
+      }
+    });
+
+    // 退出登录
+    document.getElementById("logoutBtn").addEventListener("click", () => {
+      clearAuth();
+      currentUser = null;
+      showLoginOverlay();
+    });
+
+    // ===== Utilities（保留所有原有函数） =====
+    function showMsg(el, text, type = "") {
+      el.style.display = "block";
+      el.className = `note ${type}`.trim();
+      el.textContent = text;
+    }
+
+    const softPopup = document.getElementById("softPopup");
+    const softPopupText = document.getElementById("softPopupText");
+    let softPopupTimer = 0;
+
+    function showSoftPopup(text) {
+      softPopupText.textContent = text;
+      softPopup.classList.add("show");
+      clearTimeout(softPopupTimer);
+      softPopupTimer = setTimeout(() => softPopup.classList.remove("show"), 1900);
+    }
+
+    function maskText(text) {
+      return text
+        .replace(/1\d{10}/g, "1**********")
+        .replace(/[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}/g, "***@***")
+        .replace(/微信|vx|V信|QQ/gi, "[已脱敏联系方式]");
+    }
+
+    function today() {
+      const d = new Date();
+      return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+    }
+
+    // ===== Mock AI（完全保留原有逻辑） =====
+    function analyzeEmotion(text, contentType = "free") {
+      const t = (text || "").trim();
+      const risk_level = /(轻生|不想活|伤害自己|结束自己|活不下去|自残|跳楼)/.test(t) ? "high" : "low";
+      const supportMap = {
+        开心: "鼓励型", 焦虑: "行动建议型", 难过: "倾听型",
+        孤独: "陪伴型", 迷茫: "行动建议型", 期待: "鼓励型", 平静: "陪伴型"
+      };
+      const lexicon = {
+        开心: ["开心","高兴","快乐","轻松","满足","顺利","有进展","被夸","有成就","欣慰","踏实","治愈","松口气","好消息","终于好了"],
+        焦虑: ["焦虑","担心","害怕","紧张","压力","不安","慌","睡不着","心慌","来不及","怕做不好","忐忑","急","恐慌","发愁","害怕失败"],
+        难过: ["难过","失落","委屈","沮丧","伤心","想哭","崩溃","低落","心累","被否定","压抑","痛苦","破防","emo","糟透了","难受"],
+        孤独: ["孤独","孤单","一个人","没人懂","没人陪","被忽略","没有人","无处诉说","落单","没人理解","没有归属感"],
+        迷茫: ["迷茫","不知道","没方向","无助","卡住","纠结","不知道怎么办","找不到方向","混乱","想不明白","选择困难"],
+        期待: ["期待","盼望","希望","想要","憧憬","愿望","想实现","想变好","想开始","计划","想试试","准备","目标"]
+      };
+      const intensifiers = ["很","非常","特别","太","真的","超级","越来越","一直","反复","总是"];
+      const weakeners = ["有点","一点","稍微","还好","还行","一般","偶尔"];
+      const negations = ["不","没","并不","不是","并没有","无","别","未"];
+      const score = { 开心: 0, 焦虑: 0, 难过: 0, 孤独: 0, 迷茫: 0, 期待: 0 };
+
+      function hasNearKeyword(prefix, words) { return words.some(w => prefix.includes(w)); }
+
+      Object.entries(lexicon).forEach(([emotion, words]) => {
+        words.forEach((kw) => {
+          let pos = t.indexOf(kw);
+          while (pos !== -1) {
+            const prefix = t.slice(Math.max(0, pos - 5), pos);
+            const suffix = t.slice(pos + kw.length, pos + kw.length + 4);
+            const hasNeg = hasNearKeyword(prefix, negations);
+            const strong = hasNearKeyword(prefix + suffix, intensifiers);
+            const weak = hasNearKeyword(prefix + suffix, weakeners);
+            let delta = 2;
+            if (strong) delta += 1;
+            if (weak) delta -= 1;
+            score[emotion] += hasNeg ? -delta : delta;
+            pos = t.indexOf(kw, pos + kw.length);
+          }
+        });
+      });
+
+      if (/不是.{0,3}(开心|高兴|快乐)/.test(t)) score.开心 -= 3;
+      if (/不是.{0,3}(焦虑|担心|紧张)/.test(t)) score.焦虑 -= 3;
+      if (/不是.{0,3}(难过|失落|伤心)/.test(t)) score.难过 -= 3;
+      if (/不是.{0,3}(迷茫|无助)/.test(t)) score.迷茫 -= 3;
+
+      const turnMatch = t.match(/(但是|但|不过|可是|却)(.+)$/);
+      if (turnMatch && turnMatch[2]) {
+        const tail = turnMatch[2];
+        Object.entries(lexicon).forEach(([emotion, words]) => {
+          words.forEach((kw) => { if (tail.includes(kw)) score[emotion] += 2; });
+        });
+      }
+
+      if (contentType === "happy") score.开心 += 2;
+      if (contentType === "wish") score.期待 += 2;
+      if (contentType === "trouble") { score.焦虑 += 1; score.难过 += 1; score.迷茫 += 1; }
+
+      const sorted = Object.entries(score).sort((a, b) => b[1] - a[1]);
+      const topEmotion = sorted[0]?.[0] || "平静";
+      const topScore = sorted[0]?.[1] || 0;
+      const secondScore = sorted[1]?.[1] || 0;
+      const allNonPositive = sorted.every(([, s]) => s <= 0);
+      let primary = allNonPositive ? "平静" : topEmotion;
+
+      if (!allNonPositive && topScore - secondScore <= 1) {
+        if (contentType === "happy" && score.开心 >= -1) primary = "开心";
+        if (contentType === "wish" && score.期待 >= -1) primary = "期待";
+        if (contentType === "trouble" && ["开心", "期待"].includes(primary)) {
+          primary = score.焦虑 >= score.难过 ? "焦虑" : "难过";
+        }
+      }
+
+      const rawIntensity = Math.max(1, Math.min(5, Math.round((topScore - Math.min(0, secondScore) + 1) / 2)));
+      const intensity = allNonPositive ? 1 : rawIntensity;
+      const support_style = supportMap[primary] || "陪伴型";
+
+      const keywords = t.split(/[，。！？；：、\s]/).map(s => s.trim()).filter(Boolean).filter(s => s.length >= 2).slice(0, 4);
+      const confidence = Math.max(0.1, Math.min(1, (topScore - secondScore + 2) / 6));
+      return { primary_emotion: primary, intensity, keywords, risk_level, support_style, confidence };
+    }
+
+    function createHealingReply(text, emotion) {
+      const source = (text || "").trim();
+      const keywords = emotion.keywords || [];
+
+      function hashText(s) {
+        let h = 0;
+        for (let i = 0; i < s.length; i++) h = ((h << 5) - h + s.charCodeAt(i)) | 0;
+        return Math.abs(h);
+      }
+      function pick(arr, seed = 0) {
+        if (!arr.length) return "";
+        return arr[(hashText(source) + seed) % arr.length];
+      }
+      function shortFact(sentence) {
+        const parts = (sentence || "").split(/[。！？!\?，,\n]/).map(x => x.trim()).filter(Boolean);
+        const preferred = parts.find(p => p.length >= 6 && p.length <= 30);
+        return preferred || parts[0] || "";
+      }
+      function effectiveInfoLength(sentence) {
+        return (sentence || "").replace(/[，。！？；：、,.!?;:\s]/g, "").replace(/[""'`~\-_=+()（）【】\[\]<>《》]/g, "").length;
+      }
+      function clamp(num, min, max) { return Math.max(min, Math.min(max, num)); }
+      function detectScene(sentence) {
+        const s = sentence || "";
+        if (/(考试|面试|作业|论文|上课|成绩|复习|考研|答辩)/.test(s)) return "学习";
+        if (/(工作|开会|项目|同事|老板|加班|KPI|绩效|汇报|客户|转正)/.test(s)) return "工作";
+        if (/(失眠|睡不着|熬夜|头疼|疲惫|身体|胃痛|心悸)/.test(s)) return "身心";
+        if (/(朋友|家人|关系|吵架|分手|冷战|被忽略|对象|恋爱)/.test(s)) return "关系";
+        if (/(明天|下周|未来|将来|计划|选择|方向)/.test(s)) return "未来";
+        return "日常";
+      }
+      function detectRole(sentence) {
+        const s = sentence || "";
+        const roleMatch = s.match(/(同事|老板|朋友|家人|父母|对象|老师|同学|客户)/);
+        return roleMatch ? roleMatch[1] : "";
+      }
+
+      const emotionName = emotion.primary_emotion || "平静";
+      const scene = detectScene(source);
+      const role = detectRole(source);
+      const fact = shortFact(source);
+
+      const linkByEmotion = {
+        开心: ["感受到你被认可后那种轻轻上扬的开心，这份被肯定真的很珍贵。","你这份开心很有画面感，像是努力被看见后的放松时刻。","这种\u201c被看见\u201d的感觉会很治愈，也值得你认真收藏。"],
+        焦虑: ["能感到你不是脆弱，而是太在意、太想把这件事做好。","你现在的紧张很有原因，它来自你对结果的认真。","这种焦虑感常见于高责任心的人，你并不是一个人这样。"],
+        难过: ["你这段低落是有来由的，我能感到你心里那点沉。","这份难受不是矫情，是你真的被这件事影响到了。","先让情绪被看见，比立刻振作更重要。"],
+        孤独: ["读到这里能感觉到你在一个人消化很多情绪。","你最难的部分也许不是事情本身，而是没人一起分担。","这种孤单感很真实，我有接住你。"],
+        迷茫: ["你现在像是站在岔路口，难的不是能力，而是选择太多。","这种犹豫很正常，说明你在认真对待接下来的路。","你并不是停住了，只是在找更适合自己的方向。"],
+        期待: ["你这段话里有很清晰的期待感，真的很有力量。","能看到你在认真朝更好的方向靠近。","这种期待很宝贵，它是行动最好的起点。"],
+        平静: ["你把这段日常写得很真实，也很有觉察。","这份稳定感本身就是一种能力。","你在用温和的方式和生活相处，这很好。"]
+      };
+      const sceneLink = {
+        学习: ["在学习这件事上，你已经很努力了，别把一时结果等同于全部价值。","学习压力会放大自我怀疑，你现在的感受完全可以理解。"],
+        工作: ["工作场景里这种情绪很常见，尤其当你对自己要求高的时候。","你在工作里很在意质量，这也是你会有波动的原因。"],
+        身心: ["身体状态和情绪是连在一起的，你的感受很真实。","先把节奏放慢一点，你会明显感觉更稳。"],
+        关系: ["关系里的情绪最容易反复，你会这样难受很正常。","你在意这段关系，才会被触动得这么深。"],
+        未来: ["面对不确定时会紧张是正常反应，不是你不够好。","你已经在思考下一步了，这本身就很重要。"],
+        日常: ["日常里的小波动也值得被认真对待。","你能觉察到自己的状态，这已经很不容易。"]
+      };
+      const conciseAdvice = {
+        鼓励型: ["把这份好状态记下来，留给低谷时的自己。","今天就保留这个小开心，它会变成你的底气。"],
+        倾听型: ["先允许自己缓一缓，情绪被接住后会更容易恢复。","今晚先照顾好自己，别急着要求立刻好起来。"],
+        陪伴型: ["先做一件温柔的小事给自己，比如喝口热水或早点休息。","今天不必做很多，先把自己照顾好就很好。"],
+        行动建议型: ["先做一个最小动作，事情会比想象中更可控。","把眼前任务拆成第一步，你会立刻轻一些。"]
+      };
+      const deepInsights = {
+        开心: ["这种被认可带来的情绪回暖，会一点点增强你的自信和稳定感。","你能主动记录开心瞬间，说明你正在建立更健康的情绪回路。","把这份愉悦感和具体事件绑定，之后会更容易在低谷时自我拉回。"],
+        焦虑: ["你现在的焦虑更像是高责任感的副作用，不是能力不足。","当脑海不断预演最坏结果时，先回到可执行的一小步会更有效。","你越在乎结果，越容易紧绷，所以先稳住节奏比一次做完更重要。"],
+        难过: ["这份低落里有被触动和被消耗的痕迹，需要一点时间慢慢回稳。","你愿意表达出来，本身就是在自我修复，而不是停滞。","情绪并不是问题本身，它是你在提醒自己\u201c这里需要被照顾\u201d。"],
+        孤独: ["你真正渴望的也许不是建议，而是一种被理解、被陪伴的确定感。","长时间独自消化会让心更累，所以哪怕小连接也很有价值。","你此刻的安静不是无意义，它是在保护你不被进一步消耗。"],
+        迷茫: ["你处在选择密度高的阶段，所以会出现\u201c想动但难动\u201d的感觉。","迷茫往往不是没有路，而是还没筛出最匹配自己的那条路。","先做小规模试探，会比反复空想更快带来清晰感。"],
+        期待: ["这份期待感说明你内在的生命力仍在向前流动。","当你开始描述想要的生活时，改变其实已经开始了。","把期待拆成可执行动作，会让你的希望感更稳定。"],
+        平静: ["你这种平稳的表达方式，说明你正在和自己形成更好的合作。","稳定期很适合做轻调整，而不是剧烈改变。","你现在的状态有恢复力，这很宝贵。"]
+      };
+
+      const mirrorLine = fact
+        ? `你提到"${fact}"${role ? `，尤其和${role}相关的这部分` : ""}，我有认真看到。`
+        : (keywords.length ? `我有留意到你反复提到"${keywords.join("、")}"。` : "我有认真读完你的描述。");
+
+      const baseMain = `${mirrorLine}${pick(linkByEmotion[emotionName] || linkByEmotion.平静, 3)}${pick(sceneLink[scene] || sceneLink.日常, 9)}`;
+      const advice = `建议：${pick(conciseAdvice[emotion.support_style] || conciseAdvice.陪伴型, 15)}`;
+      const effectiveLen = effectiveInfoLength(source);
+      const targetLen = clamp(Math.round(effectiveLen * 1.05) + 20, 60, 900);
+      const extraPool = deepInsights[emotionName] || deepInsights.平静;
+      const extraCount = clamp(Math.ceil(effectiveLen / 65), 0, 8);
+
+      const extras = [];
+      for (let i = 0; i < extraCount; i++) { extras.push(pick(extraPool, 30 + i)); }
+
+      let reply = `${baseMain}${extras.length ? extras.join("") : ""}\n${advice}`;
+      let guard = 0;
+      while (reply.length < targetLen && guard < 10) {
+        reply += pick(extraPool, 80 + guard);
+        guard += 1;
+      }
+      return reply;
+    }
+
+    function createChallenges(emotion) {
+      function shuffle(arr) {
+        const copy = [...arr];
+        for (let i = copy.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [copy[i], copy[j]] = [copy[j], copy[i]];
+        }
+        return copy;
+      }
+      function splitSentencePieces(sentence) {
+        if (sentence.includes(" ")) return sentence.split(" ").filter(Boolean);
+        const pieces = [];
+        for (let i = 0; i < sentence.length; i += 2) pieces.push(sentence.slice(i, i + 2));
+        return pieces.filter(Boolean);
+      }
+
+      const moodPool = ["开心", "平静", "期待", "焦虑", "难过", "迷茫", "孤独"];
+      const correctMood = moodPool.includes(emotion.primary_emotion) ? emotion.primary_emotion : "平静";
+      const distractors = shuffle(moodPool.filter(x => x !== correctMood)).slice(0, 2);
+      const guessOptions = shuffle([correctMood, ...distractors]);
+      const guess = {
+        id: `c_guess_${Math.random().toString(36).slice(2, 7)}`,
+        type: "guess_mood", question: "此刻最贴近你心情的是哪一个？（选错也会有温柔提示）",
+        options: guessOptions, answer: correctMood,
+        softHints: {
+          开心: "这份轻轻上扬的心情很珍贵，像被温柔看见。",
+          平静: "你现在的节奏挺稳，像在慢慢和自己对齐。",
+          期待: "你心里有一束向前的光，正在悄悄发亮。",
+          焦虑: "你很在意这件事，才会有这份紧张感。",
+          难过: "你需要先被理解，而不是被催着振作。",
+          迷茫: "看不清方向时，先走一小步也算答案。",
+          孤独: "你不是一个人在感受这些，我在这里陪你。"
+        }
+      };
+
+      const phraseBank = {
+        开心: ["今天被肯定的我有点发光","把这份小开心悄悄收藏起来","我的努力终于被世界看见"],
+        焦虑: ["先做眼前一步就已经很好","慢一点我也依然在前进","把大问题拆小我就不慌了"],
+        难过: ["允许自己难过再慢慢变好","被接住的情绪会重新发芽","今天先好好抱抱自己"],
+        孤独: ["我值得被温柔认真地理解","一个人也可以慢慢被治愈","晚风会把孤单轻轻带走"],
+        迷茫: ["方向会在行动里慢慢出现","先走一小步路就会亮起来","我可以边尝试边找到答案"],
+        期待: ["愿望正在靠近请继续发光","期待的种子正在悄悄生长","我想去的地方会一步步抵达"],
+        平静: ["平凡日子也有柔软的光","安静不是空白是温柔力量","把今天过好就已经很棒"]
+      };
+      const sentencePool = phraseBank[correctMood] || phraseBank.平静;
+      const sentence = sentencePool[Math.floor(Math.random() * sentencePool.length)];
+      const pieces = splitSentencePieces(sentence);
+      const shuffledPieces = shuffle(pieces);
+
+      const textPuzzle = {
+        id: `c_text_${Math.random().toString(36).slice(2, 7)}`,
+        type: "text_puzzle", question: "按正确顺序点击词块，拼出完整句子：",
+        pieces: shuffledPieces, answerPieces: pieces, answer: sentence
+      };
+
+      const scenePool = [
+        { id: "s1", desc: "清晨海边，风很轻，天色刚亮", mood: "平静" },
+        { id: "s2", desc: "夜里书桌前，待办贴满一角", mood: "焦虑" },
+        { id: "s3", desc: "下课后操场边，朋友笑着击掌", mood: "开心" },
+        { id: "s4", desc: "雨后窗边，一杯热可可冒着白气", mood: "治愈" },
+        { id: "s5", desc: "黄昏天台，望着远处慢慢发呆", mood: "迷茫" },
+        { id: "s6", desc: "地铁角落，耳机里是熟悉的歌", mood: "孤独" },
+        { id: "s7", desc: "清单旁打上第一个勾的瞬间", mood: "期待" },
+        { id: "s8", desc: "晚风吹过树梢，街灯一盏盏亮起", mood: "平静" },
+        { id: "s9", desc: "打开消息看到一句\u201c你做得很好\u201d", mood: "开心" },
+        { id: "s10", desc: "考前夜，桌上摊开的复习笔记", mood: "焦虑" },
+        { id: "s11", desc: "湖边长椅，一个人看着水面发光", mood: "孤独" },
+        { id: "s12", desc: "清晨写下目标，准备开始新的一天", mood: "期待" }
+      ];
+      const moodMap = { 治愈: "平静" };
+      const targetMood = moodMap[correctMood] || correctMood;
+      const correctScenes = scenePool.filter(x => (moodMap[x.mood] || x.mood) === targetMood);
+      const wrongScenes = scenePool.filter(x => (moodMap[x.mood] || x.mood) !== targetMood);
+      const correctScene = correctScenes[Math.floor(Math.random() * correctScenes.length)] || scenePool[0];
+      const candidates = shuffle([correctScene, ...shuffle(wrongScenes).slice(0, 2)]);
+
+      const imageMatch = {
+        id: `c_img_${Math.random().toString(36).slice(2, 7)}`,
+        type: "image_match", question: "从这3个画面里，选一个最像你现在心情的场景：",
+        candidates, answer: correctScene.id
+      };
+
+      return [guess, textPuzzle, imageMatch];
+    }
+
+    function aiReplyGuide(bottle, emotionText) {
+      const points = [
+        "先接住对方的感受，比如\u201c我能理解你现在的心情\u201d",
+        "避免\u201c你应该怎样\u201d，多用\u201c如果你愿意可以...\u201d"
+      ];
+      return {
+        empathy_points: points,
+        reply_suggestion_short: "谢谢你愿意分享这段心情，你已经很勇敢了。愿你今天能被一点点温柔接住。",
+        reply_suggestion_warm: "谢谢你把心事放进漂流瓶。你的感受被看见了，也值得被认真对待。愿你先照顾好自己，一小步一小步来，我相信你会慢慢变轻松。"
+      };
+    }
+
+    // ===== Navigation =====
+    const screens = [...document.querySelectorAll(".screen")];
+    const navBtns = [...document.querySelectorAll(".nav-btn")];
+
+    function switchScreen(id) {
+      screens.forEach(s => s.classList.toggle("active", s.id === id));
+      navBtns.forEach(btn => btn.classList.toggle("active", btn.dataset.screen === id));
+      if (id === "stories") renderStories();
+      if (id === "profile") renderProfile();
+    }
+
+    navBtns.forEach(btn => btn.addEventListener("click", () => switchScreen(btn.dataset.screen)));
+
+    // ===== Home flow（改造为 API 调用） =====
+    const bottleInput = document.getElementById("bottleInput");
+    const createBottleBtn = document.getElementById("createBottleBtn");
+    const mockFillBtn = document.getElementById("mockFillBtn");
+    const homeMsg = document.getElementById("homeMsg");
+    const analysisCard = document.getElementById("analysisCard");
+    const challengeCard = document.getElementById("challengeCard");
+    const releaseCard = document.getElementById("releaseCard");
+
+    let currentBottle = null;
+    const challengeState = {};
+    const challengeMeta = {};
+
+    mockFillBtn.addEventListener("click", () => {
+      const demo = [
+        "今天被同事夸了，突然有一点开心。",
+        "最近总怕自己做不好，有点焦虑。",
+        "今天一个人吃饭，心里有点空。"
+      ];
+      bottleInput.value = demo[Math.floor(Math.random() * demo.length)];
+    });
+
+    createBottleBtn.addEventListener("click", async () => {
+      const content = bottleInput.value.trim();
+      if (content.length === 0) return showMsg(homeMsg, "写1个字也可以，把此刻心情放进瓶子吧。", "error");
+      if (content.length > 300) return showMsg(homeMsg, "内容请控制在300字以内。", "error");
+      const contentType = document.getElementById("contentType").value;
+
+      // 本地分析情绪（纯前端计算）
+      const emotion = analyzeEmotion(content, contentType);
+      if (emotion.risk_level === "high") {
+        return showMsg(homeMsg, "检测到高风险内容，当前瓶子不会进入公开池。请优先联系现实中可信任的人，必要时寻求专业帮助。", "error");
+      }
+
+      const healingReply = createHealingReply(content, emotion);
+      const challenges = createChallenges(emotion);
+
+      // 禁用按钮，显示加载
+      createBottleBtn.disabled = true;
+      createBottleBtn.innerHTML = '<span class="loading"></span>投递中...';
+
+      try {
+        // 调用 API 创建瓶子
+        const data = await apiRequest("/api/bottles", {
+          method: "POST",
+          body: JSON.stringify({
+            content,
+            contentType,
+            emotion: emotion.primary_emotion,
+            emotionAnalysis: emotion,
+            healingReply,
+            challenges
+          })
+        });
+
+        // currentBottle 存储后端返回的完整对象（包含 _id 字段）
+        currentBottle = {
+          id: data._id || data.id,
+          _id: data._id || data.id,
+          content: data.content || content,
+          contentType: data.contentType || contentType,
+          status: data.status || "submitted",
+          isPublic: true,
+          riskLevel: emotion.risk_level,
+          emotionSummary: `${emotion.primary_emotion}（强度${emotion.intensity}）`,
+          healingReply: data.healingReply || healingReply,
+          analysis: data.emotionAnalysis || emotion,
+          challenges: data.challenges || challenges,
+          createdAt: data.createdAt || Date.now()
+        };
+
+        // 更新本地用户治愈值
+        if (currentUser) {
+          currentUser.healingPoint = (currentUser.healingPoint || 0) + 2;
+          if (!currentUser.badges) currentUser.badges = [];
+          if (!currentUser.badges.includes("FirstBottle")) currentUser.badges.push("FirstBottle");
+          setUser(currentUser);
+          updateCurrentUserUI();
+        }
+
+        showMsg(homeMsg, "漂流瓶已创建，AI正在读取你的心情。", "success");
+        renderAnalysis(currentBottle);
+        renderChallenges(currentBottle);
+        renderRelease(null);
+      } catch (err) {
+        showMsg(homeMsg, err.message || "创建失败，请稍后重试", "error");
+      } finally {
+        createBottleBtn.disabled = false;
+        createBottleBtn.innerHTML = "投递漂流瓶";
+      }
+    });
+
+    function applyManualEmotion(bottle, emotionLabel) {
+      const supportMap = {
+        开心: "鼓励型", 焦虑: "行动建议型", 难过: "倾听型",
+        孤独: "陪伴型", 迷茫: "行动建议型", 期待: "鼓励型", 平静: "陪伴型"
+      };
+      bottle.analysis.primary_emotion = emotionLabel;
+      bottle.analysis.support_style = supportMap[emotionLabel] || "陪伴型";
+      bottle.analysis.confidence = 1;
+      bottle.emotionSummary = `${emotionLabel}（强度${bottle.analysis.intensity}）`;
+      bottle.healingReply = createHealingReply(bottle.content, bottle.analysis);
+      bottle.challenges = createChallenges(bottle.analysis);
+      Object.keys(challengeState).forEach(k => delete challengeState[k]);
+      renderAnalysis(bottle);
+      renderChallenges(bottle);
+      renderRelease(null);
+      showSoftPopup("已按你的真实情绪重新生成");
+
+      // 异步更新后端
+      apiRequest(`/api/bottles/${bottle._id || bottle.id}`, {
+        method: "PUT",
+        body: JSON.stringify({
+          emotion: emotionLabel,
+          emotionAnalysis: bottle.analysis,
+          healingReply: bottle.healingReply,
+          challenges: bottle.challenges
+        })
+      }).catch(() => {});
+    }
+
+    function renderAnalysis(bottle) {
+      analysisCard.style.display = "block";
+      analysisCard.innerHTML = `
+        <h3 style="margin-top:0;">AI情绪分析结果</h3>
+        <p class="sub" style="margin:4px 0 6px;">情绪：<b>${bottle.analysis.primary_emotion}</b> ｜ 强度：${bottle.analysis.intensity}/5 ｜ 风格：${bottle.analysis.support_style} ｜ 置信度：${Math.round((bottle.analysis.confidence || 0.6) * 100)}%</p>
+        <div>${bottle.analysis.keywords.map(k => `<span class="chip">${k}</span>`).join("") || "<span class='chip'>日常</span>"}</div>
+        <div class="note" style="margin-top:10px;">${bottle.healingReply}</div>
+        <div class="note" style="margin-top:10px;">
+          识别不准？点一下你的真实心情，我们会立即重算回复和关卡。<br/>
+          <div class="row" style="margin-top:8px;">
+            <button class="btn ghost manual-emotion" data-emotion="开心">开心</button>
+            <button class="btn ghost manual-emotion" data-emotion="平静">平静</button>
+            <button class="btn ghost manual-emotion" data-emotion="期待">期待</button>
+            <button class="btn ghost manual-emotion" data-emotion="焦虑">焦虑</button>
+            <button class="btn ghost manual-emotion" data-emotion="难过">小失落</button>
+            <button class="btn ghost manual-emotion" data-emotion="迷茫">迷茫</button>
+          </div>
+        </div>
+      `;
+      analysisCard.querySelectorAll(".manual-emotion").forEach(btn => {
+        btn.addEventListener("click", () => applyManualEmotion(bottle, btn.dataset.emotion));
+      });
+    }
+
+    function renderChallenges(bottle) {
+      challengeCard.style.display = "block";
+      const total = bottle.challenges.length;
+      const passed = bottle.challenges.filter(c => challengeState[c.id] === true).length;
+      const ratio = Math.floor((passed / total) * 100);
+
+      challengeCard.innerHTML = `
+        <h3 style="margin:0;">专属迷你闯关</h3>
+        <p class="sub" style="margin:6px 0;">完成全部3关后才能放飞漂流瓶。</p>
+        <div class="progress"><div class="progress-bar" style="width:${ratio}%"></div></div>
+        <p class="small">进度：${passed}/${total}</p>
+        <div id="challengeList"></div>
+      `;
+
+      const list = challengeCard.querySelector("#challengeList");
+      bottle.challenges.forEach((c, idx) => {
+        const done = challengeState[c.id] === true;
+        const wrap = document.createElement("div");
+        wrap.className = `challenge ${done ? "done" : ""}`;
+        if (c.type === "guess_mood") {
+          wrap.innerHTML = `
+            <b>关卡${idx + 1}：AI猜心情</b>
+            <p class="small">${c.question}</p>
+            <div class="options">${c.options.map(op => `<button class="option-btn" data-cid="${c.id}" data-val="${op}">${op}</button>`).join("")}</div>
+            <div id="msg_${c.id}" class="small">${done ? "已通过" : ""}</div>
+          `;
+        }
+        if (c.type === "text_puzzle") {
+          const selected = challengeMeta[c.id]?.selectedPieces || [];
+          wrap.innerHTML = `
+            <b>关卡${idx + 1}：AI文字拼图</b>
+            <p class="small">${c.question}</p>
+            <div class="note">已选择：${selected.join("") || "（按顺序点下面词块）"}</div>
+            <div class="options">${c.pieces.map((piece, i) => `<button class="option-btn" data-piece-cid="${c.id}" data-piece-idx="${i}">${piece}</button>`).join("")}</div>
+            <div class="row" style="margin-top:8px;">
+              <button class="btn ghost" data-piece-reset="${c.id}">重置顺序</button>
+            </div>
+            <div id="msg_${c.id}" class="small">${done ? "已通过" : ""}</div>
+          `;
+        }
+        if (c.type === "image_match") {
+          wrap.innerHTML = `
+            <b>关卡${idx + 1}：AI画面匹配</b>
+            <p class="small">${c.question}</p>
+            <div class="options">${c.candidates.map(op => `<button class="option-btn" data-cid="${c.id}" data-val="${op.id}">${op.desc}</button>`).join("")}</div>
+            <div id="msg_${c.id}" class="small">${done ? "已通过" : ""}</div>
+          `;
+        }
+        list.appendChild(wrap);
+      });
+
+      list.querySelectorAll("[data-cid]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const cid = btn.dataset.cid;
+          const val = btn.dataset.val;
+          const challenge = bottle.challenges.find(x => x.id === cid);
+          const ok = challenge.answer === val;
+          const msg = list.querySelector(`#msg_${cid}`);
+          if (challenge.type === "guess_mood") {
+            const tryCount = challengeMeta[cid]?.tries || 0;
+            if (ok) {
+              challengeState[cid] = true;
+              msg.textContent = "猜中啦！这正是你此刻的心情。";
+              msg.style.color = "#1c7e54";
+            } else if (tryCount >= 1) {
+              challengeState[cid] = true;
+              msg.textContent = `也很贴近你哦，${challenge.softHints?.[val] || "你已经很会照顾自己的情绪了。"} 已温柔通关。`;
+              msg.style.color = "#1c7e54";
+            } else {
+              challengeMeta[cid] = { ...(challengeMeta[cid] || {}), tries: tryCount + 1 };
+              msg.textContent = `这个选项也有你的影子：${challenge.softHints?.[val] || "你的感觉很重要。"} 再选一次试试看～`;
+              msg.style.color = "#4a5090";
+            }
+          } else if (challenge.type === "image_match") {
+            if (ok) {
+              challengeState[cid] = true;
+              msg.textContent = "画面匹配成功，心情被准确接住了。";
+              msg.style.color = "#1c7e54";
+            } else {
+              challengeState[cid] = true;
+              msg.textContent = "这个选择也很有你的感觉，AI已温柔放行。";
+              msg.style.color = "#1c7e54";
+            }
+          }
+          renderChallenges(bottle);
+          renderRelease(bottle);
+        });
+      });
+
+      list.querySelectorAll("[data-piece-cid]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const cid = btn.dataset.pieceCid;
+          const pieceIdx = Number(btn.dataset.pieceIdx);
+          const challenge = bottle.challenges.find(x => x.id === cid);
+          const picked = challenge.pieces[pieceIdx];
+          const msg = list.querySelector(`#msg_${cid}`);
+          const meta = challengeMeta[cid] || { selectedPieces: [], selectedIndex: [] };
+          if (meta.selectedIndex.includes(pieceIdx)) return;
+          meta.selectedPieces.push(picked);
+          meta.selectedIndex.push(pieceIdx);
+          challengeMeta[cid] = meta;
+
+          const current = meta.selectedPieces.join("");
+          const target = challenge.answerPieces.slice(0, meta.selectedPieces.length).join("");
+          const okPrefix = current === target;
+
+          if (!okPrefix) {
+            msg.textContent = "顺序有一点点偏了，已帮你重置，重新点一次就好。";
+            msg.style.color = "#4a5090";
+            challengeMeta[cid] = { selectedPieces: [], selectedIndex: [] };
+            renderChallenges(bottle);
+            return;
+          }
+
+          const ok = current === challenge.answer;
+          if (ok) {
+            challengeState[cid] = true;
+            msg.textContent = "组句完成，太棒了！";
+            msg.style.color = "#1c7e54";
+          } else {
+            msg.textContent = `很好，继续按顺序点击（${meta.selectedPieces.length}/${challenge.answerPieces.length}）`;
+            msg.style.color = "#4a5090";
+          }
+          renderChallenges(bottle);
+          renderRelease(bottle);
+        });
+      });
+
+      list.querySelectorAll("[data-piece-reset]").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const cid = btn.dataset.pieceReset;
+          challengeMeta[cid] = { selectedPieces: [], selectedIndex: [] };
+          renderChallenges(bottle);
+        });
+      });
+    }
+
+    function renderRelease(bottle) {
+      releaseCard.style.display = bottle ? "block" : "none";
+      if (!bottle) return;
+      const passCount = bottle.challenges.filter(c => challengeState[c.id]).length;
+      const done = passCount === bottle.challenges.length;
+
+      if (!done) {
+        releaseCard.innerHTML = `<p class="sub">闯关完成后，你的瓶子会匿名漂向另一位陌生玩家。</p>`;
+        return;
+      }
+
+      releaseCard.innerHTML = `
+        <h3 style="margin:4px 0;">闯关成功</h3>
+        <div class="drift"></div>
+        <p class="sub">你的漂流瓶已放飞，正在寻找愿意温柔回应的人。</p>
+        <div class="row" style="margin-top:12px;">
+          <button id="releaseBtn" class="btn ok">确认放飞漂流瓶</button>
+          <button id="goPickBtn" class="btn ghost">去捡一个瓶子</button>
+        </div>
+      `;
+
+      releaseCard.querySelector("#releaseBtn").addEventListener("click", async () => {
+        const releaseBtn = releaseCard.querySelector("#releaseBtn");
+        releaseBtn.disabled = true;
+        releaseBtn.innerHTML = '<span class="loading"></span>放飞中...';
+
+        try {
+          // 调用 API 放飞瓶子
+          await apiRequest(`/api/bottles/${bottle._id || bottle.id}/release`, {
+            method: "POST"
+          });
+
+          bottle.status = "delivered";
+
+          // 更新本地用户治愈值
+          if (currentUser) {
+            currentUser.healingPoint = (currentUser.healingPoint || 0) + 3;
+            setUser(currentUser);
+            updateCurrentUserUI();
+          }
+
+          showMsg(homeMsg, "放飞成功！你的瓶子已进入匿名漂流池。", "success");
+          showSoftPopup("漂流瓶轻轻放飞啦");
+        } catch (err) {
+          showMsg(homeMsg, err.message || "放飞失败，请稍后重试", "error");
+        } finally {
+          releaseBtn.disabled = false;
+          releaseBtn.innerHTML = "确认放飞漂流瓶";
+        }
+      });
+
+      releaseCard.querySelector("#goPickBtn").addEventListener("click", () => switchScreen("pick"));
+    }
+
+    // ===== Pick flow（改造为 API 调用） =====
+    const pickBottleBtn = document.getElementById("pickBottleBtn");
+    const pickBox = document.getElementById("pickBox");
+    const pickMsg = document.getElementById("pickMsg");
+    let pickedBottle = null;
+
+    pickBottleBtn.addEventListener("click", async () => {
+      pickBottleBtn.disabled = true;
+      pickBottleBtn.innerHTML = '<span class="loading"></span>捡瓶中...';
+      pickBox.style.display = "none";
+
+      try {
+        // 调用 API 获取随机瓶子
+        const data = await apiRequest("/api/bottles/random", {
+          method: "GET"
+        });
+
+        if (!data || !data._id) {
+          return showMsg(pickMsg, "暂时还没有可捡的瓶子，稍后再来看看。", "");
+        }
+
+        // pickedBottle 存储后端返回的完整对象
+        pickedBottle = {
+          id: data._id,
+          _id: data._id,
+          content: data.content,
+          contentType: data.contentType,
+          status: "picked",
+          isPublic: true,
+          riskLevel: data.riskLevel || "low",
+          emotionSummary: data.emotionSummary || `${data.emotion || "平静"}`,
+          healingReply: data.healingReply || "",
+          analysis: data.emotionAnalysis || { primary_emotion: data.emotion || "平静", intensity: 3, keywords: [], risk_level: "low", support_style: "陪伴型", confidence: 0.6 },
+          challenges: data.challenges || [],
+          authorName: data.authorName || "匿名",
+          replies: data.replies || [],
+          createdAt: data.createdAt || Date.now()
+        };
+
+        const guide = aiReplyGuide(pickedBottle, pickedBottle.emotionSummary);
+        pickBox.style.display = "block";
+        pickBox.innerHTML = `
+          <div class="story">
+            <div class="chip">原瓶情绪：${pickedBottle.analysis?.primary_emotion || "平静"}</div>
+            <p style="line-height:1.7;">${maskText(pickedBottle.content)}</p>
+            <div class="note">
+              <b>AI共情建议</b><br/>
+              ${guide.empathy_points.map((x, i) => `${i + 1}. ${x}`).join("<br/>")}
+              <hr style="border:none;border-top:1px solid #dfe4ff;margin:8px 0;"/>
+              <div class="small">短句：${guide.reply_suggestion_short}</div>
+              <div class="small" style="margin-top:4px;">温暖版：${guide.reply_suggestion_warm}</div>
+            </div>
+            <textarea id="replyInput" placeholder="写下你的温柔回复..." style="margin-top:8px;min-height:96px;"></textarea>
+            <div class="row" style="margin-top:8px;">
+              <button id="sendReplyBtn" class="btn">发送回复</button>
+            </div>
+          </div>
+        `;
+
+        pickBox.querySelector("#sendReplyBtn").addEventListener("click", async () => {
+          const replyContent = pickBox.querySelector("#replyInput").value.trim();
+          if (replyContent.length < 6) return showMsg(pickMsg, "回复至少6个字哦。", "error");
+
+          const sendBtn = pickBox.querySelector("#sendReplyBtn");
+          sendBtn.disabled = true;
+          sendBtn.innerHTML = '<span class="loading"></span>发送中...';
+
+          try {
+            // 调用 API 发送回复
+            await apiRequest(`/api/bottles/${pickedBottle._id}/reply`, {
+              method: "POST",
+              body: JSON.stringify({ content: replyContent })
+            });
+
+            pickedBottle.status = "replied";
+
+            // 更新本地用户治愈值
+            if (currentUser) {
+              currentUser.healingPoint = (currentUser.healingPoint || 0) + 4;
+              if (!currentUser.badges) currentUser.badges = [];
+              if (!currentUser.badges.includes("FirstHeal")) currentUser.badges.push("FirstHeal");
+              setUser(currentUser);
+              updateCurrentUserUI();
+            }
+
+            showMsg(pickMsg, "回复已送达。你完成了一次温柔接力。", "success");
+            showSoftPopup("回复成功，星星已为你闪烁");
+            renderStories();
+            renderProfile();
+          } catch (err) {
+            showMsg(pickMsg, err.message || "回复失败，请稍后重试", "error");
+          } finally {
+            sendBtn.disabled = false;
+            sendBtn.innerHTML = "发送回复";
+          }
+        });
+
+        showMsg(pickMsg, "已为你匹配到一个漂流瓶。", "success");
+        showSoftPopup("捡瓶成功，记得温柔回复");
+      } catch (err) {
+        if (err.message.includes("登录已过期")) return;
+        showMsg(pickMsg, err.message || "捡瓶失败，请稍后重试", "error");
+      } finally {
+        pickBottleBtn.disabled = false;
+        pickBottleBtn.innerHTML = "随机捡瓶";
+      }
+    });
+
+    // ===== Stories（改造为 API 调用） =====
+    const storyList = document.getElementById("storyList");
+    async function renderStories() {
+      storyList.innerHTML = '<div class="note"><span class="loading"></span>加载故事流...</div>';
+
+      try {
+        const data = await apiRequest("/api/stories", { method: "GET" });
+        const stories = Array.isArray(data) ? data : (data.stories || []);
+
+        if (stories.length === 0) {
+          storyList.innerHTML = `<div class="note">还没有故事，去投一个瓶子或回复别人吧。</div>`;
+          return;
+        }
+
+        storyList.innerHTML = stories
+          .slice(0, 20)
+          .map(item => `
+            <div class="story">
+              <div class="chip">${item.emotionTag || "日常"}</div>
+              <p class="small">原文摘要：${item.excerpt || ""}</p>
+              <p class="small">回复摘要：${item.replyExcerpt || ""}</p>
+              <p class="small">${new Date(item.createdAt).toLocaleString("zh-CN")}</p>
+            </div>
+          `)
+          .join("");
+      } catch (err) {
+        storyList.innerHTML = `<div class="note error">加载失败：${err.message}</div>`;
+      }
+    }
+
+    // ===== Profile + tasks（改造为 API 调用） =====
+    const profileInfo = document.getElementById("profileInfo");
+    const taskList = document.getElementById("taskList");
+    const checkinBtn = document.getElementById("checkinBtn");
+    const resetBtn = document.getElementById("resetBtn");
+
+    async function renderProfile() {
+      if (!currentUser) return;
+      const badges = currentUser.badges?.length ? currentUser.badges.join(" / ") : "暂无";
+      profileInfo.innerHTML = `
+        <b>用户名：</b>${currentUser.nickname || currentUser.username || "匿名"}<br/>
+        <b>治愈值：</b>${currentUser.healingPoint || 0}<br/>
+        <b>连续签到：</b>${currentUser.streak || 0} 天<br/>
+        <b>徽章：</b>${badges}
+      `;
+
+      // 调用 API 获取任务
+      try {
+        const data = await apiRequest("/api/user/tasks", { method: "GET" });
+        const tasks = Array.isArray(data) ? data : (data.tasks || []);
+        taskList.innerHTML = tasks.map(t => `
+          <div class="note ${t.done ? "success" : ""}">
+            ${t.done ? "✅" : "⬜"} ${t.name}
+          </div>
+        `).join("");
+      } catch (err) {
+        taskList.innerHTML = `<div class="note error">加载任务失败</div>`;
+      }
+    }
+
+    checkinBtn.addEventListener("click", async () => {
+      checkinBtn.disabled = true;
+      checkinBtn.innerHTML = '<span class="loading"></span>签到中...';
+
+      try {
+        // 调用 API 签到
+        const data = await apiRequest("/api/user/checkin", { method: "POST" });
+
+        if (data.alreadyChecked) {
+          showSoftPopup("今天已经签到过啦");
+        } else {
+          // 更新本地用户数据
+          if (currentUser) {
+            currentUser.streak = data.streak || (currentUser.streak || 0) + 1;
+            currentUser.lastCheckinDate = today();
+            currentUser.healingPoint = (currentUser.healingPoint || 0) + (data.points || 1);
+            if (!currentUser.badges) currentUser.badges = [];
+            if (data.badge && !currentUser.badges.includes(data.badge)) {
+              currentUser.badges.push(data.badge);
+            }
+            if (currentUser.streak >= 3 && !currentUser.badges.includes("WarmStreak3")) {
+              currentUser.badges.push("WarmStreak3");
+            }
+            setUser(currentUser);
+            updateCurrentUserUI();
+          }
+          renderProfile();
+          showSoftPopup("签到成功，治愈值+1");
+        }
+      } catch (err) {
+        showSoftPopup(err.message || "签到失败");
+      } finally {
+        checkinBtn.disabled = false;
+        checkinBtn.innerHTML = "今日签到";
+      }
+    });
+
+    resetBtn.addEventListener("click", async () => {
+      if (!confirm("确认重置所有数据？此操作不可撤销。")) return;
+
+      resetBtn.disabled = true;
+      resetBtn.innerHTML = '<span class="loading"></span>重置中...';
+
+      try {
+        // 调用 API 重置
+        await apiRequest("/api/user/reset", { method: "POST" });
+
+        // 清除本地状态
+        clearAuth();
+        currentUser = null;
+        currentBottle = null;
+        pickedBottle = null;
+        Object.keys(challengeState).forEach(k => delete challengeState[k]);
+        Object.keys(challengeMeta).forEach(k => delete challengeMeta[k]);
+
+        showLoginOverlay();
+      } catch (err) {
+        showSoftPopup(err.message || "重置失败");
+      } finally {
+        resetBtn.disabled = false;
+        resetBtn.innerHTML = "重置数据";
+      }
+    });
+
+    // ===== 初始化 =====
+    function initApp() {
+      // 重置界面状态
+      analysisCard.style.display = "none";
+      challengeCard.style.display = "none";
+      releaseCard.style.display = "none";
+      pickBox.style.display = "none";
+      homeMsg.style.display = "none";
+      pickMsg.style.display = "none";
+      bottleInput.value = "";
+      currentBottle = null;
+      pickedBottle = null;
+      Object.keys(challengeState).forEach(k => delete challengeState[k]);
+      Object.keys(challengeMeta).forEach(k => delete challengeMeta[k]);
+
+      // 切换到首页
+      switchScreen("home");
+      renderStories();
+      renderProfile();
+    }
+
+    // 启动时检查 token
+    (function bootstrap() {
+      const token = getToken();
+      const user = getUser();
+      if (token && user) {
+        currentUser = user;
+        hideLoginOverlay();
+        updateCurrentUserUI();
+        initApp();
+      } else {
+        showLoginOverlay();
+      }
+    })();
+  </script>
+</body>
+</html>
