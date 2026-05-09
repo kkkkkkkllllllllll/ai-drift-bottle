@@ -4,7 +4,7 @@ const path = require('path');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
-require('dotenv').config();
+//require('dotenv').config();
 
 const db = require('./db');
 
